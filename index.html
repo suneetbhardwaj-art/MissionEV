@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>MissionEV — Living Climate Intelligence | Build with Bharat 5.0 × Portal Hacker House 2026</title>
-  <meta name="description" content="MissionEV transforms everyday mobility choices into measurable carbon insights, interactive challenges, and transparent blockchain-powered rewards on Portal Layer 0 EVM and Microsoft Azure.">
+  <meta name="description" content="MissionEV transforms everyday mobility choices into measurable carbon insights, interactive challenges, and transparent assumptions and an optional Portal V3 testnet contract. Prototype with demo data.">
   <meta name="keywords" content="MissionEV, EV, Carbon Accounting, Web3, Portal Layer 0, Microsoft Azure, Build with Bharat 5.0, Climate Tech, Sustainable Mobility">
   
   <!-- Open Graph -->
@@ -56,7 +56,7 @@
       </nav>
 
       <div class="header-right">
-        <div class="telemetry-status-pill" title="Telemetry Feed Live">
+        <div class="telemetry-status-pill" title="Your local clock (IST), not a data feed">
           <div class="pulse-dot"></div>
           <span class="mono" id="liveClockTime">--:--:-- IST</span>
         </div>
@@ -130,7 +130,7 @@
         <div class="hero-telemetry-badge-row reveal">
           <div class="hero-telemetry-badge"><span class="pulse-dot"></span> MOBILITY NETWORK: <b>SIMULATED</b></div>
           <div class="hero-telemetry-badge">CARBON SCORE: <b>DEMO 842</b></div>
-          <div class="hero-telemetry-badge">NETWORK: <b>PORTAL LAYER 0 EVM</b></div>
+          <div class="hero-telemetry-badge">TARGET CHAIN: <b>PORTAL V3 TESTNET</b></div>
           <div class="hero-telemetry-badge">JOURNEY STATUS: <b>INTERACTIVE DEMO</b></div>
         </div>
       </div>
@@ -139,16 +139,16 @@
     <!-- Angled Ticker Band -->
     <div class="ticker-band" aria-hidden="true">
       <div class="ticker-track">
-        <span>⚡ 100% TRANSPARENT EMISSION FACTORS</span>
-        <span>🌍 CENTRAL ELECTRICITY AUTHORITY (CEA) GRID BASELINE 0.71 KG CO2/KWH</span>
-        <span>🚀 PORTAL LAYER 0 EVM REWARD CONTRACTS</span>
-        <span>☁️ POWERED BY MICROSOFT AZURE SERVERLESS ORACLE</span>
+        <span>⚡ EMISSION FACTORS AND SOURCES LISTED IN METHODOLOGY</span>
+        <span>🌍 GRID FACTOR BASED ON CEA DATA (SEE METHODOLOGY)</span>
+        <span>🚀 PORTAL V3 TESTNET CONTRACT SOURCE INCLUDED</span>
+        <span>☁️ AZURE ORACLE: PLANNED, NOT BUILT</span>
         <span>🚲 ZERO TAILPIPE COMMUTE MULTIPLIERS</span>
         <span>📊 REAL-TIME CARBON ACCOUNTING DASHBOARD</span>
-        <span>⚡ 100% TRANSPARENT EMISSION FACTORS</span>
-        <span>🌍 CENTRAL ELECTRICITY AUTHORITY (CEA) GRID BASELINE 0.71 KG CO2/KWH</span>
-        <span>🚀 PORTAL LAYER 0 EVM REWARD CONTRACTS</span>
-        <span>☁️ POWERED BY MICROSOFT AZURE SERVERLESS ORACLE</span>
+        <span>⚡ EMISSION FACTORS AND SOURCES LISTED IN METHODOLOGY</span>
+        <span>🌍 GRID FACTOR BASED ON CEA DATA (SEE METHODOLOGY)</span>
+        <span>🚀 PORTAL V3 TESTNET CONTRACT SOURCE INCLUDED</span>
+        <span>☁️ AZURE ORACLE: PLANNED, NOT BUILT</span>
       </div>
     </div>
 
@@ -171,19 +171,19 @@
             <span class="problem-num">01 / URBAN BURDEN</span>
             <div class="problem-stat counter-val" data-target="24" data-suffix="%">24%</div>
             <h3>Invisible Daily Emissions</h3>
-            <p>Urban transport generates nearly a quarter of direct energy emissions. An ICE sedan emits ~196g CO2e/km, but commuters never see the atmospheric toll of their daily traffic jams.</p>
+            <p>Transport accounts for roughly a quarter of global direct CO2 emissions from fuel combustion (a figure attributed to the IEA; not re-verified for this site). In this project's model a petrol sedan emits about 196 g CO2e/km, a number commuters rarely see.</p>
           </div>
 
           <div class="problem-card reveal">
             <span class="problem-num">02 / DISCONNECTED COMMUTERS</span>
-            <div class="problem-stat counter-val" data-target="0" data-suffix=" Verified Records">0</div>
+            <div class="problem-stat">No ledger</div>
             <h3>No Continuous Personal Ledger</h3>
             <p>Public transit and EV drivers generate substantial avoided carbon every week, but their choices disappear into thin air without a persistent, portable record of their climate stewardship.</p>
           </div>
 
           <div class="problem-card reveal">
             <span class="problem-num">03 / MISSING INCENTIVES</span>
-            <div class="problem-stat counter-val" data-target="0" data-suffix=" Micro-Incentives">0</div>
+            <div class="problem-stat">No reward loop</div>
             <h3>The Missing Reward Loop</h3>
             <p>Without low-cost, decentralized verifiable micro-rewards, cities lack the behavioral economic engine needed to nudge commuters toward clean transit habits.</p>
           </div>
@@ -193,8 +193,8 @@
         <div class="dual-route-box reveal">
           <div class="box-bar">
             <b>INTERACTIVE DUAL-ROUTE COMPARISON</b>
-            <span>Compare ICE vs Clean Mobility across Real Urban Corridors</span>
-            <span class="chip-tag">SIMULATED MODEL</span>
+            <span>Compare a fossil baseline with a cleaner mode on three example corridors</span>
+            <span class="chip-tag">DEMO MODEL · ILLUSTRATIVE ROUTES</span>
           </div>
 
           <div class="dual-route-nav" role="tablist">
@@ -207,45 +207,45 @@
             <!-- Vehicle A: ICE Fossil -->
             <div class="dual-vehicle-card fossil">
               <span class="vehicle-type-label">VEHICLE A: FOSSIL BASELINE</span>
-              <div class="vehicle-name" id="probIceVehicle">Petrol ICE Sedan (196 g/km)</div>
+              <div class="vehicle-name" id="probIceVehicle">—</div>
               <div class="comparison-meter">
                 <div class="comparison-meter-fill fill-coral" id="probIceBar" style="width: 100%;"></div>
               </div>
               <div class="vehicle-metrics-row">
                 <span class="text-muted">Estimated CO2:</span>
-                <b class="mono" id="probIceCo2">5.17 kg CO2e</b>
+                <b class="mono" id="probIceCo2">—</b>
               </div>
               <div class="vehicle-metrics-row">
-                <span class="text-muted">Fuel / Running Cost:</span>
-                <b class="mono" id="probIceCost">₹285 (Petrol)</b>
+                <span class="text-muted">Emission factor:</span>
+                <b class="mono" id="probIceCost">—</b>
               </div>
             </div>
 
             <!-- Vehicle B: Clean / EV -->
             <div class="dual-vehicle-card clean">
               <span class="vehicle-type-label">VEHICLE B: CLEAN ALTERNATIVE</span>
-              <div class="vehicle-name hl" id="probCleanVehicle">Tata Nexon EV (68 g/km Grid)</div>
+              <div class="vehicle-name hl" id="probCleanVehicle">—</div>
               <div class="comparison-meter">
                 <div class="comparison-meter-fill fill-lime" id="probCleanBar" style="width: 35%;"></div>
               </div>
               <div class="vehicle-metrics-row">
                 <span class="text-muted">Estimated CO2:</span>
-                <b class="mono hl" id="probCleanCo2">1.80 kg CO2e</b>
+                <b class="mono hl" id="probCleanCo2">—</b>
               </div>
               <div class="vehicle-metrics-row">
-                <span class="text-muted">Electric Charging Cost:</span>
-                <b class="mono hl" id="probCleanCost">₹58 (Charging)</b>
+                <span class="text-muted">Emission factor:</span>
+                <b class="mono hl" id="probCleanCost">—</b>
               </div>
             </div>
           </div>
 
           <div class="avoided-delta-banner">
             <div>
-              <span class="mono" style="font-size: 11px; text-transform: uppercase;">Avoided Carbon on this Single Trip</span>
-              <div class="mono hl" style="font-size: 24px; font-weight: 800;" id="probAvoidedDelta">-3.37 kg CO2e</div>
+              <span class="mono" style="font-size: 11px; text-transform: uppercase;">Difference on this trip (baseline − cleaner mode)</span>
+              <div class="mono hl" style="font-size: 24px; font-weight: 800;" id="probAvoidedDelta">—</div>
             </div>
             <div class="mono" style="font-size: 11.5px; color: var(--text-muted);" id="probMethodologySource">
-              Source: CEA CO2 Baseline Database v19 & MoRTH Standards
+              Factors: see methodology
             </div>
           </div>
         </div>
@@ -267,27 +267,27 @@
 
         <div class="gamified-preview-grid">
           <div class="game-metric-card reveal">
-            <span class="k">PERSONAL CARBON SCORE</span>
-            <div class="v hl">842</div>
-            <div class="sub">Econaut Master (Top 3% Commuters)</div>
+            <span class="k">SAMPLE CARBON SCORE · DEMO</span>
+            <div class="v hl" id="missionScore">—</div>
+            <div class="sub">Fictional sample profile. Rule documented in methodology.</div>
           </div>
 
           <div class="game-metric-card reveal">
-            <span class="k">CLEAN-COMMUTE STREAK</span>
-            <div class="v hl">18 <span style="font-size: 18px;">Days</span></div>
-            <div class="sub">🔥 2.5x Reward Token Multiplier Active</div>
+            <span class="k">SAMPLE CLEAN STREAK · DEMO</span>
+            <div class="v hl" id="missionStreak">—</div>
+            <div class="sub">Consecutive days with a clean journey (sample).</div>
           </div>
 
           <div class="game-metric-card reveal">
-            <span class="k">AVOIDED EMISSIONS</span>
-            <div class="v hl">142.8 <span style="font-size: 18px;">kg</span></div>
-            <div class="sub">Equivalent to 6.5 mature tree-months</div>
+            <span class="k">SAMPLE AVOIDED EMISSIONS · DEMO</span>
+            <div class="v hl" id="missionAvoided">—</div>
+            <div class="sub">Versus a petrol-sedan baseline (sample figure).</div>
           </div>
 
           <div class="game-metric-card reveal">
-            <span class="k">PROTOTYPE MEV TOKENS</span>
-            <div class="v hl">1,428</div>
-            <div class="sub">Mintable to Portal Layer 0 Testnet</div>
+            <span class="k">SAMPLE REWARD POINTS · DEMO</span>
+            <div class="v hl" id="missionPoints">—</div>
+            <div class="sub">Demo points. Not on-chain tokens.</div>
           </div>
         </div>
       </div>
@@ -302,7 +302,7 @@
             <h2 class="sec-title">Model your commute.<br><span class="hl">Measure the change.</span></h2>
           </div>
           <p class="sec-desc">
-            Experiment with transportation modes, journey distances, and charging grid mixes. All factors are transparently calculated using Indian power grid and vehicle standards.
+            Experiment with transportation modes, journey distances, and charging grid mixes. Fossil factors are project assumptions; electric factors combine illustrative kWh/km values with a CEA-based grid factor. Sources and caveats are in the methodology section.
           </p>
         </div>
 
@@ -317,13 +317,13 @@
           </div>
           <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
             <span class="mono" style="font-size: 11.5px; color: var(--text-muted);">Chain ID: <b class="hl">420420777</b> (Portal V3)</span>
-            <span class="chip-tag web3-testnet-indicator" style="display: none;">ON-CHAIN ACTIVE</span>
-            <span class="chip-tag web3-demo-indicator">LOCAL SIMULATION</span>
+            <span class="chip-tag web3-testnet-indicator" style="display: none;">TESTNET MODE · REAL TRANSACTIONS</span>
+            <span class="chip-tag web3-demo-indicator">DEMO · LOCAL ONLY</span>
           </div>
         </div>
 
         <div class="web3-mode-banner demo-active reveal" id="web3ModeBanner">
-          <span>ℹ️</span> <b>DEMO MODE ACTIVE:</b> Calculating emissions locally. No wallet or testnet gas required to explore.
+          <b>DEMO MODE:</b> emissions are calculated locally with sample data. Nothing is sent to a blockchain.
         </div>
 
         <div class="lab-grid reveal">
@@ -367,7 +367,7 @@
                   <span class="mono" style="font-size: 13px; color: var(--text-muted);">km</span>
                 </div>
               </div>
-              <input type="range" id="labDistanceSlider" min="1" max="150" value="25" aria-label="Journey Distance Slider">
+              <input type="range" id="labDistanceSlider" min="1" max="200" value="25" aria-label="Journey Distance Slider">
               <div class="preset-buttons-row">
                 <button type="button" class="dist-preset-btn" data-km="8">Short City (8 km)</button>
                 <button type="button" class="dist-preset-btn active" data-km="25">Office Commute (25 km)</button>
@@ -390,8 +390,8 @@
             <!-- Green / Solar Tariff Toggle -->
             <div class="toggle-switch-row">
               <div>
-                <b>Renewable Solar Charging Tariff</b>
-                <div style="font-size: 12px; color: var(--text-muted);">Simulate midday solar charging (15 g/km vs 68 g/km grid)</div>
+                <b>Renewable (solar) electricity scenario</b>
+                <div id="labGreenHint" style="font-size: 12px; color: var(--text-muted);"></div>
               </div>
               <label class="switch-input" aria-label="Renewable Solar Charging Switch">
                 <input type="checkbox" id="labGreenToggle">
@@ -405,21 +405,26 @@
             <!-- Summary Output Bar -->
             <div class="metrics-summary-bar">
               <div class="metric-pill-item">
-                <span class="k">ESTIMATED CO2</span>
-                <div class="v" id="labActualKg">1.70 kg</div>
+                <span class="k">SELECTED JOURNEY CO2e</span>
+                <div class="v" id="labActualKg">—</div>
               </div>
               <div class="metric-pill-item">
-                <span class="k">BASELINE ICE</span>
-                <div class="v" id="labBaselineKg">4.90 kg</div>
+                <span class="k">BASELINE CO2e</span>
+                <div class="v" id="labBaselineKg">—</div>
               </div>
               <div class="metric-pill-item">
-                <span class="k">AVOIDED CARBON</span>
-                <div class="v hl" id="labAvoidedKg">-3.20 kg</div>
+                <span class="k">AVOIDED (BASELINE − JOURNEY)</span>
+                <div class="v hl" id="labAvoidedKg">—</div>
               </div>
               <div class="metric-pill-item">
-                <span class="k">REWARD TOKENS</span>
-                <div class="v hl" id="labRewardTokens">+69 MEV</div>
+                <span class="k">DEMO REWARD POINTS</span>
+                <div class="v hl" id="labRewardTokens">—</div>
               </div>
+            </div>
+
+            <div class="lab-explain" id="labExplain">
+              <div id="labAvoidedNote"></div>
+              <div id="labFactorLine"></div>
             </div>
 
             <!-- Real On-Chain Action Card (Visible when in Testnet Mode) -->
@@ -429,20 +434,21 @@
                 <span class="mono hl" style="font-size: 11px;">EVMobilityRewards.sol</span>
               </div>
               <p style="font-size: 13.5px; color: var(--text-muted); margin: 0 0 14px;">
-                Directly calls <code>recordEVJourney(bytes32 journeyId, uint32 distanceKm)</code> or <code>recordICEJourney(...)</code> on the Portal V3 testnet (Chain ID <code>420420777</code>). Requires your connected Web3 wallet.
+                Calls <code>recordEVJourney(bytes32, uint32)</code> for Electric Car, or <code>recordICEJourney(bytes32, uint8, uint32, uint32)</code> for Petrol Car and Diesel SUV, on chain <code>420420777</code>. Other journey types have no on-chain method. Needs a connected wallet, testnet gas and a deployed contract. The result shows contract constants, which differ from the lab model.
               </p>
-              <button type="button" class="btn lime mag" id="submitRealOnChainBtn" style="width: 100%;" data-cursor="SUBMIT">
-                Submit Commute to Portal V3 EVM
+              <div id="onchainPreflightNote" class="mono" style="font-size: 12px; color: var(--text-muted); margin: 0 0 12px; line-height: 1.5;"></div>
+              <button type="button" class="btn lime mag" id="submitRealOnChainBtn" style="width: 100%;" data-cursor="SUBMIT" disabled>
+                Checking contract…
               </button>
-              <div class="real-tx-receipt-card" id="realTxReceiptCard">
-                <div id="realTxStatusMessage">Transaction initializing...</div>
+              <div class="real-tx-receipt-card" id="realTxReceiptCard" style="display:block;">
+                <div id="realTxStatusMessage">No transaction submitted</div>
               </div>
             </div>
 
             <!-- Visualization A: Emissions Comparison SVG Bar Chart -->
             <div class="vis-card">
               <div class="vis-card-head">
-                <h4>A. Real-Time Emissions Comparison (vs Baseline)</h4>
+                <h4>A. Emissions Comparison (selected journey vs baseline)</h4>
                 <span class="mono" style="font-size: 12px; color: var(--text-muted);">Kilograms CO2e per journey</span>
               </div>
               <div class="chart-svg-container" id="labComparisonSvg"></div>
@@ -454,7 +460,7 @@
             <!-- Visualization B: Weekly Mobility Mix Breakdown -->
             <div class="vis-card">
               <div class="vis-card-head">
-                <h4>B. Interactive Weekly Mobility Mix</h4>
+                <h4>B. Weekly Mobility Mix (same factors and baseline)</h4>
                 <div class="slider-input-box">
                   <span class="mono" style="font-size: 12px; color: var(--text-muted);">Weekly Distance:</span>
                   <input type="number" id="weeklyDistanceInput" class="slider-number-input" value="180" style="width: 58px;">
@@ -511,10 +517,11 @@
             <h2 class="sec-title">Your personal<br><span class="hl">climate dashboard.</span></h2>
           </div>
           <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+            <span class="chip-tag">DEMO DATA · FICTIONAL PROFILES</span>
             <select id="dashProfileSelect" class="select-control" style="width: 220px;" aria-label="Switch User Profile">
-              <option value="aarav">Aarav Sharma (EV Pioneer)</option>
-              <option value="priya">Priya Patel (Multimodal)</option>
-              <option value="rohan">Rohan Verma (Transitioner)</option>
+              <option value="aarav">Aarav Sharma (sample)</option>
+              <option value="priya">Priya Patel (sample)</option>
+              <option value="rohan">Rohan Verma (sample)</option>
             </select>
             <button type="button" class="btn sm ghost" id="dashResetDemoBtn" title="Reset local profile preferences">RESET DEMO PROFILE</button>
           </div>
@@ -531,15 +538,15 @@
               </div>
             </div>
             <div class="hero-telemetry-badge">
-              <span class="wallet-dot online"></span>
-              PORTAL WALLET: <b id="dashWalletAddress">0x7B2F...39e1</b>
+              <span class="wallet-dot"></span>
+              WALLET: <b id="dashWalletAddress">None (sample profile)</b>
             </div>
           </div>
 
           <div class="profile-metrics-deck">
             <div class="profile-metric-tile">
-              <span class="k">CARBON SCORE</span>
-              <div class="v hl" id="dashCarbonScore">842</div>
+              <span class="k">DEMO CARBON SCORE</span>
+              <div class="v hl" id="dashCarbonScore">—</div>
             </div>
             <div class="profile-metric-tile">
               <span class="k">CLEAN STREAK</span>
@@ -554,8 +561,8 @@
               <div class="v" id="dashTotalTrips">84 Commutes</div>
             </div>
             <div class="profile-metric-tile">
-              <span class="k">MEV BALANCE</span>
-              <div class="v hl" id="dashTokenBalance">1,428 MEV</div>
+              <span class="k">SAMPLE POINTS</span>
+              <div class="v hl" id="dashTokenBalance">—</div>
             </div>
           </div>
         </div>
@@ -565,7 +572,7 @@
           <div class="score-trend-header">
             <div>
               <h4 style="margin: 0; font-family: var(--font-display); font-size: 17px;">Carbon Score Trend</h4>
-              <span class="mono" style="font-size: 12px; color: var(--text-muted);">Normalized 0 - 1000 clean mobility index</span>
+              <span class="mono" style="font-size: 12px; color: var(--text-muted);">Illustrative demo trend · score 0–1000, rule in methodology</span>
             </div>
             <div class="timeframe-pill-group" role="tablist">
               <button type="button" class="dash-tf-btn" data-tf="day" role="tab" aria-selected="false">DAY</button>
@@ -579,7 +586,7 @@
         <!-- Trip Log Table -->
         <div class="trip-log-section reveal">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-            <h4 style="margin: 0; font-family: var(--font-display); font-size: 17px;">Recent Commutes & Proofs</h4>
+            <h4 style="margin: 0; font-family: var(--font-display); font-size: 17px;">Recent Sample Commutes</h4>
             <div class="trip-filters-bar">
               <button type="button" class="dash-filter-btn active" data-filter="all">All Trips</button>
               <button type="button" class="dash-filter-btn" data-filter="clean">Electric EV</button>
@@ -594,11 +601,11 @@
         <!-- Badges & Leaderboard Grid -->
         <div class="badges-leaderboard-grid reveal">
           <div>
-            <h4 style="margin: 0 0 16px; font-family: var(--font-display); font-size: 17px;">Clean Mobility Badges</h4>
+            <h4 style="margin: 0 0 16px; font-family: var(--font-display); font-size: 17px;">Sample Badges</h4>
             <div class="badge-cards-grid" id="dashBadgesGrid"></div>
           </div>
           <div>
-            <h4 style="margin: 0 0 16px; font-family: var(--font-display); font-size: 17px;">Community Leaderboard</h4>
+            <h4 style="margin: 0 0 16px; font-family: var(--font-display); font-size: 17px;">Sample Leaderboard (fictional)</h4>
             <div class="leaderboard-list" id="dashLeaderboard"></div>
           </div>
         </div>
@@ -614,7 +621,7 @@
             <h2 class="sec-title">Your mobility story.<br><span class="hl">A transparent record.</span></h2>
           </div>
           <p class="sec-desc">
-            Learn how Portal Layer 0 EVM and Solidity smart contracts enforce decentralized carbon accounting, minting auditable non-custodial reward points without centralized gatekeepers.
+            How the EVMobilityRewards contract in this repo records journeys on a Portal V3 testnet. The simulator below is local only. Real transactions need a wallet, testnet gas and a deployed contract.
           </p>
         </div>
 
@@ -622,73 +629,71 @@
         <div class="pipeline-flow-track reveal">
           <button type="button" class="pipeline-step-node" data-step="step1" aria-pressed="false">
             <div class="step-num-badge">STAGE 01</div>
-            <span class="step-title">Journey Input & Telemetry</span>
+            <span class="step-title">Journey Input</span>
           </button>
           <button type="button" class="pipeline-step-node" data-step="step2" aria-pressed="false">
             <div class="step-num-badge">STAGE 02</div>
-            <span class="step-title">Azure Oracle Computation</span>
+            <span class="step-title">Azure Oracle (planned)</span>
           </button>
           <button type="button" class="pipeline-step-node active" data-step="step3" aria-pressed="true">
             <div class="step-num-badge">STAGE 03</div>
-            <span class="step-title">Smart Contract Verification</span>
+            <span class="step-title">Contract Rules</span>
           </button>
           <button type="button" class="pipeline-step-node" data-step="step4" aria-pressed="false">
             <div class="step-num-badge">STAGE 04</div>
-            <span class="step-title">EVM State Transition</span>
+            <span class="step-title">State Change</span>
           </button>
           <button type="button" class="pipeline-step-node" data-step="step5" aria-pressed="false">
             <div class="step-num-badge">STAGE 05</div>
-            <span class="step-title">On-Chain Record & Explorer</span>
+            <span class="step-title">Public Record</span>
           </button>
         </div>
 
         <!-- Pipeline Inspection Box -->
         <div class="pipeline-inspection-box reveal">
           <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px;">
-            <h3 style="margin: 0; font-family: var(--font-display); font-size: 19px;" id="pipelineDetailTitle">03 / SMART CONTRACT VERIFICATION</h3>
-            <span class="chip-tag" id="pipelineDetailBadge">PORTAL LAYER 0 • SOLIDITY CONTRACT</span>
+            <h3 style="margin: 0; font-family: var(--font-display); font-size: 19px;" id="pipelineDetailTitle"></h3>
+            <span class="chip-tag" id="pipelineDetailBadge"></span>
           </div>
-          <h4 style="margin: 0 0 10px; font-weight: 600; color: var(--emerald);" id="pipelineDetailSub">MissionEV.sol Evaluates Carbon Reward Rules</h4>
-          <p style="margin: 0; font-size: 15px; color: var(--text-muted); line-height: 1.6;" id="pipelineDetailBody">
-            The Solidity contract on Portal Layer 0 EVM receives the oracle signature. It verifies that the commuter has not exceeded daily travel allowances, validates streak multipliers, and computes $MEV tokens earned.
-          </p>
+          <h4 style="margin: 0 0 10px; font-weight: 600; color: var(--emerald);" id="pipelineDetailSub"></h4>
+          <p style="margin: 0; font-size: 15px; color: var(--text-muted); line-height: 1.6;" id="pipelineDetailBody"></p>
         </div>
 
         <!-- Interactive Transaction Simulator -->
         <div class="tx-simulator-grid reveal">
           <div class="tx-call-preview">
             <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
-              <b>SIMULATED CONTRACT CALL</b>
+              <b>CONTRACT CALL PREVIEW</b>
               <span class="mono" style="font-size: 11px; color: var(--text-muted);">Syncing with Mobility Lab</span>
             </div>
-            <div class="tx-solidity-code" id="txSolidityCall">MissionEV.recordCommute(...)</div>
+            <div class="tx-solidity-code" id="txSolidityCall"></div>
             <div style="display: flex; justify-content: space-between; margin-top: 14px; font-size: 13.5px;">
-              <span>Mode: <b class="hl" id="txPreviewMode">Electric Car</b></span>
-              <span>Distance: <b id="txPreviewDist">25.0 km</b></span>
-              <span>Avoided: <b class="hl" id="txPreviewAvoided">3.20 kg</b></span>
+              <span>Mode: <b class="hl" id="txPreviewMode">—</b></span>
+              <span>Distance: <b id="txPreviewDist">—</b></span>
+              <span>Lab diff: <b class="hl" id="txPreviewAvoided">—</b></span>
             </div>
             <button type="button" class="btn lime mag" id="simulateTxBtn" style="width: 100%; margin-top: 18px;" data-cursor="MINT">
-              Simulate On-Chain Minting
+              Run Simulation (nothing is submitted)
             </button>
           </div>
 
           <div class="tx-status-card" id="txStatusCard">
             <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
-              <b>PORTAL LAYER 0 EVM STATE MACHINE</b>
-              <span class="mono" style="font-size: 11px; color: var(--lime);">TESTNET V3</span>
+              <b>SIMULATION · NOT A REAL TRANSACTION</b>
+              <span class="mono" style="font-size: 11px; color: var(--lime);">DEMO</span>
             </div>
-            <div class="mono" style="font-size: 13px;" id="txStateLabel">STAGE: Ready to simulate transaction</div>
+            <div class="mono" style="font-size: 13px;" id="txStateLabel">No transaction submitted</div>
             <div class="tx-progress-bar-wrap">
               <div class="tx-progress-bar-fill" id="txProgressBar"></div>
             </div>
             <div class="tx-receipt-details">
-              <div class="r-row"><span class="k">TX HASH:</span><span class="mono hl" id="txReceiptHash">0x7b4a...c91e</span></div>
-              <div class="r-row"><span class="k">BLOCK NUMBER:</span><span class="mono" id="txReceiptBlock">#4,891,024</span></div>
-              <div class="r-row"><span class="k">GAS ESTIMATE:</span><span class="mono" id="txReceiptGas">46,128 Gwei (0.00012 PORTAL)</span></div>
-              <div class="r-row"><span class="k">EVENT EMITTED:</span><span class="mono" id="txReceiptEvent">CommuteVerified(commuter: 0x7B2F...39e1, reward: +69 MEV)</span></div>
+              <div class="r-row"><span class="k">TX HASH:</span><span class="mono hl" id="txReceiptHash">none: nothing was submitted</span></div>
+              <div class="r-row"><span class="k">BLOCK NUMBER:</span><span class="mono" id="txReceiptBlock">none</span></div>
+              <div class="r-row"><span class="k">GAS:</span><span class="mono" id="txReceiptGas">none</span></div>
+              <div class="r-row"><span class="k">DEMO RESULT:</span><span class="mono" id="txReceiptEvent">none</span></div>
             </div>
             <div style="font-size: 11.5px; color: var(--text-muted); margin-top: 12px;">
-              ℹ️ Simulated testnet execution for Build with Bharat 5.0 & Portal Hacker House. No live gas or private keys required.
+              ℹ️ Local simulation only. It never produces a hash, block or gas receipt because nothing is submitted. For a real transaction use Portal V3 Testnet mode in the Mobility Lab.
             </div>
           </div>
         </div>
@@ -698,7 +703,7 @@
           <div class="vis-card-head">
             <div>
               <h4 style="margin: 0; font-family: var(--font-display); font-size: 17px;">
-                ⛓️ Portal V3 EVM Live Contract & Token Integration
+                ⛓️ Portal V3 Config Status (live checks)
               </h4>
               <span class="mono" style="font-size: 12px; color: var(--text-muted);">
                 Network: Portal V3 Testnet • Chain ID: <b class="hl">420420777</b> • RPC: <code>https://test-evm-rpc-v3.portaldot.dev</code>
@@ -717,43 +722,50 @@
             </div>
             <div class="onchain-stat-pill">
               <span class="k">NATIVE GAS (PORTAL)</span>
-              <span class="v mono" id="web3NativeGasBal">0.00 PORTAL</span>
+              <span class="v mono" id="web3NativeGasBal">—</span>
             </div>
             <div class="onchain-stat-pill">
-              <span class="k">PORTAL TOKEN (MEV)</span>
-              <span class="v mono hl" id="web3TokenBal">0.00 MEV</span>
+              <span class="k" id="web3TokenLabel">REWARD TOKEN BALANCE</span>
+              <span class="v mono hl" id="web3TokenBal">—</span>
             </div>
             <div class="onchain-stat-pill">
-              <span class="k">ON-CHAIN CARBON SCORE</span>
-              <span class="v mono hl" id="onChainCarbonScore">500</span>
+              <span class="k">ON-CHAIN SCORE (CONTRACT)</span>
+              <span class="v mono hl" id="onChainCarbonScore">—</span>
+            </div>
+            <div class="onchain-stat-pill">
+              <span class="k">ON-CHAIN STREAK</span>
+              <span class="v mono" id="onChainStreak">—</span>
+            </div>
+            <div class="onchain-stat-pill">
+              <span class="k">ON-CHAIN TRIPS</span>
+              <span class="v mono" id="onChainTotalTrips">—</span>
+            </div>
+            <div class="onchain-stat-pill">
+              <span class="k">AVOIDED (CONTRACT CONSTANTS)</span>
+              <span class="v mono" id="onChainTotalAvoided">—</span>
             </div>
           </div>
 
-          <!-- Target Contract Addresses & ABI Configuration -->
+          <!-- Live deployment checks and contract address -->
           <div class="contract-config-accordion">
-            <div style="display: flex; justify-content: space-between; align-items: baseline;">
-              <b style="font-family: var(--font-display); font-size: 14px;">CONTRACT DEPLOYMENT ENDPOINTS</b>
-              <span class="mono" style="font-size: 11px; color: var(--text-muted);">EVMobilityRewards.sol & IPortalToken</span>
+            <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 6px;">
+              <b style="font-family: var(--font-display); font-size: 14px;">DEPLOYMENT CHECKS</b>
+              <span class="mono" style="font-size: 11px; color: var(--text-muted);">read from the RPC in your browser, not hard-coded</span>
             </div>
-            <div class="contract-address-grid">
+            <div id="web3ConfigStatus" class="cfg-list" aria-live="polite">Checking…</div>
+            <div class="contract-address-grid" style="grid-template-columns: 1fr auto;">
               <div>
                 <label for="customContractAddressInput" class="mono" style="font-size: 11px; color: var(--text-muted); display: block; margin-bottom: 4px;">
-                  EVMOBILITYREWARDS CONTRACT ADDRESS:
+                  EVMOBILITYREWARDS CONTRACT ADDRESS (target: <span id="web3TargetContract">not configured</span>):
                 </label>
-                <input type="text" id="customContractAddressInput" placeholder="0x..." aria-label="EVMobilityRewards Contract Address">
-              </div>
-              <div>
-                <label for="customTokenAddressInput" class="mono" style="font-size: 11px; color: var(--text-muted); display: block; margin-bottom: 4px;">
-                  PORTAL ERC-20 TOKEN ADDRESS (IPORTALTOKEN):
-                </label>
-                <input type="text" id="customTokenAddressInput" placeholder="0x..." aria-label="Portal Token Address">
+                <input type="text" id="customContractAddressInput" placeholder="0x… paste a deployed address" aria-label="EVMobilityRewards contract address" spellcheck="false">
               </div>
               <button type="button" class="btn sm lime" id="saveContractAddressesBtn" style="white-space: nowrap;">
-                Save Addresses
+                Save and Verify
               </button>
             </div>
             <div style="font-size: 12px; color: var(--text-muted); margin-top: 10px; line-height: 1.5;">
-              ℹ️ Default endpoints configured for Portal V3 Testnet. You can enter any newly deployed contract address above to interact with it directly from this interface.
+              ℹ️ No deployment is bundled with this repo. The addresses previously listed in the README had no bytecode on this network, so they were removed. Deploy <code>contract/EVMobilityRewards.sol</code> (token address and oracle in the constructor), fund it with the reward token, then paste the address here. It is saved only in this browser.
             </div>
           </div>
         </div>
@@ -769,7 +781,7 @@
             <h2 class="sec-title">Cloud intelligence.<br><span class="hl">Verifiable incentives.</span></h2>
           </div>
           <p class="sec-desc">
-            Explore how Microsoft Azure's enterprise cloud infrastructure combines with Portal Layer 0's low-latency EVM blockchain to create an unforgeable, highly scalable mobility architecture.
+            The intended design pairs an Azure cloud backend with an EVM contract. Every layer below is labelled as implemented, source-only or planned.
           </p>
         </div>
 
@@ -778,10 +790,10 @@
           <div class="arch-layer-card" data-layer="layer1" tabindex="0" role="button" aria-pressed="false">
             <div class="arch-layer-head">
               <span class="arch-layer-title">LAYER 1: CLIENT FRONTEND EXPERIENCE</span>
-              <span class="mono" style="font-size: 11px; color: var(--lime);">PWA • DASHBOARD • WALLET CONNECTOR</span>
+              <span class="mono" style="font-size: 11px; color: var(--lime);">STATIC WEB APP · IMPLEMENTED</span>
             </div>
             <div style="font-size: 13.5px; color: var(--text-muted); margin-top: 6px;">
-              Responsive client web application, journey telemetry logging, offline trip queues, and Web3 testnet wallet interface.
+              Responsive static web app with the emissions model, a sample dashboard and an optional wallet connector.
             </div>
           </div>
 
@@ -789,11 +801,11 @@
 
           <div class="arch-layer-card active" data-layer="layer2" tabindex="0" role="button" aria-pressed="true">
             <div class="arch-layer-head">
-              <span class="arch-layer-title">LAYER 2: MICROSOFT AZURE CLOUD ENGINE</span>
-              <span class="mono" style="font-size: 11px; color: var(--cyan);">AZURE FUNCTIONS • AZURE MAPS • EVENT HUBS</span>
+              <span class="arch-layer-title">LAYER 2: MICROSOFT AZURE (PLANNED)</span>
+              <span class="mono" style="font-size: 11px; color: var(--cyan);">PLANNED · NOT IMPLEMENTED</span>
             </div>
             <div style="font-size: 13.5px; color: var(--text-muted); margin-top: 6px;">
-              Deterministic serverless emissions engine, Azure Maps route verification & geofencing, and IoT telematics streaming.
+              Design target only: an emissions oracle, route verification and telematics streaming. None of it exists yet.
             </div>
           </div>
 
@@ -801,11 +813,11 @@
 
           <div class="arch-layer-card" data-layer="layer3" tabindex="0" role="button" aria-pressed="false">
             <div class="arch-layer-head">
-              <span class="arch-layer-title">LAYER 3: PORTAL LAYER 0 EVM ECOSYSTEM</span>
-              <span class="mono" style="font-size: 11px; color: var(--lime);">SOLIDITY CONTRACTS • MEV TOKEN • ERC-721 BADGES</span>
+              <span class="arch-layer-title">LAYER 3: PORTAL V3 EVM CONTRACT</span>
+              <span class="mono" style="font-size: 11px; color: var(--lime);">SOURCE ONLY · DEPLOYMENT UNVERIFIED</span>
             </div>
             <div style="font-size: 13.5px; color: var(--text-muted); margin-top: 6px;">
-              Sub-second finality smart contracts, verifiable decentralized state changes, and high-frequency commute reward minting.
+              EVMobilityRewards.sol records journeys and can pay out an existing ERC-20 reward token. It does not mint, and has no badges.
             </div>
           </div>
 
@@ -813,11 +825,11 @@
 
           <div class="arch-layer-card" data-layer="layer4" tabindex="0" role="button" aria-pressed="false">
             <div class="arch-layer-head">
-              <span class="arch-layer-title">LAYER 4: STORAGE & ENTERPRISE ANALYTICS</span>
-              <span class="mono" style="font-size: 11px; color: var(--emerald);">AZURE COSMOS DB • MICROSOFT FABRIC • POWER BI</span>
+              <span class="arch-layer-title">LAYER 4: STORAGE & ANALYTICS (PLANNED)</span>
+              <span class="mono" style="font-size: 11px; color: var(--emerald);">PLANNED · NOT IMPLEMENTED</span>
             </div>
             <div style="font-size: 13.5px; color: var(--text-muted); margin-top: 6px;">
-              Encrypted commuter profile storage and macro municipal carbon accounting dashboards for city planners.
+              Idea only: stored commuter profiles and city-level dashboards. Nothing is stored or analysed today.
             </div>
           </div>
         </div>
@@ -826,7 +838,7 @@
         <div class="arch-detail-spec-panel reveal">
           <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px;">
             <h3 style="margin: 0; font-family: var(--font-display); font-size: 20px;" id="archSpecName">LAYER 2: MICROSOFT AZURE CLOUD BACKEND</h3>
-            <span class="chip-tag" id="archSpecStatus">Target architecture defined with simulated endpoints</span>
+            <span class="chip-tag" id="archSpecStatus"></span>
           </div>
           <div class="mono hl" style="font-size: 13px; margin-bottom: 12px;" id="archSpecRole">
             Deterministic Emissions Oracle, Geofencing & Event Streaming
@@ -854,7 +866,7 @@
             <h2 class="sec-title">From individual choices<br><span class="hl">to collective impact.</span></h2>
           </div>
           <p class="sec-desc">
-            What happens when thousands of commuters shift their daily trips? Model the macro environmental and economic impact across India's largest metropolitan regions.
+            What if a share of daily trips moved to cleaner modes? A simple scenario model with illustrative inputs. It is not a measurement or a validated forecast, and its assumptions are listed below.
           </p>
         </div>
 
@@ -862,15 +874,15 @@
         <div class="city-impact-box reveal">
           <div class="box-bar">
             <b>COLLECTIVE MUNICIPAL IMPACT SIMULATOR</b>
-            <span id="citySimContext">Severely affected by vehicular NOx and winter PM2.5 smog</span>
-            <span class="chip-tag">SIMULATED SCENARIO</span>
+            <span id="citySimContext"></span>
+            <span class="chip-tag">ILLUSTRATIVE SCENARIO · NOT A FORECAST</span>
           </div>
 
           <div style="padding: 24px 0 0;">
             <div class="city-nav-row" role="tablist">
-              <button type="button" class="city-select-btn active" data-city="delhi" role="tab" aria-selected="true">Delhi NCR (24.5M Trips/Day)</button>
-              <button type="button" class="city-select-btn" data-city="bengaluru" role="tab" aria-selected="false">Bengaluru Tech Hub (13.8M Trips/Day)</button>
-              <button type="button" class="city-select-btn" data-city="mumbai" role="tab" aria-selected="false">Mumbai MMR (18.2M Trips/Day)</button>
+              <button type="button" class="city-select-btn active" data-city="delhi" role="tab" aria-selected="true">Delhi NCR (24.5M trips/day, illustrative)</button>
+              <button type="button" class="city-select-btn" data-city="bengaluru" role="tab" aria-selected="false">Bengaluru (13.8M trips/day, illustrative)</button>
+              <button type="button" class="city-select-btn" data-city="mumbai" role="tab" aria-selected="false">Mumbai MMR (18.2M trips/day, illustrative)</button>
             </div>
 
             <div class="city-slider-panel">
@@ -883,26 +895,24 @@
 
             <div class="city-impact-results-grid">
               <div class="city-stat-card">
-                <span class="k">ANNUAL AVOIDED CO2</span>
-                <div class="v hl" id="cityAnnualCo2Avoided">5,394,000 Metric Tons / Year</div>
+                <span class="k">ANNUAL CO2e DIFFERENCE (ILLUSTRATIVE)</span>
+                <div class="v hl" id="cityAnnualCo2Avoided">—</div>
               </div>
               <div class="city-stat-card">
-                <span class="k">PM2.5 AIR TOXINS CURTAILED</span>
-                <div class="v" style="color: var(--cyan);" id="cityPm25Reduced">698,000 kg PM2.5</div>
+                <span class="k">TRIPS SHIFTED PER DAY</span>
+                <div class="v" style="color: var(--cyan);" id="cityTripsShifted">—</div>
               </div>
               <div class="city-stat-card">
-                <span class="k">HEALTHCARE EXTERNALITY SAVED</span>
-                <div class="v" style="color: #E0FF85;" id="cityHealthSavings">₹755.2 Crores Value</div>
+                <span class="k">DIFFERENCE PER SHIFTED TRIP</span>
+                <div class="v" style="color: #E0FF85;" id="cityPerTripKg">—</div>
               </div>
               <div class="city-stat-card">
-                <span class="k">COMMUNITY TOKEN ECONOMY</span>
-                <div class="v hl" id="cityTokensTreasury">107.9M MEV Tokens</div>
+                <span class="k">PM2.5 (ILLUSTRATIVE ASSUMPTION)</span>
+                <div class="v" style="color: var(--cyan);" id="cityPm25Reduced">—</div>
               </div>
             </div>
 
-            <div style="font-size: 12px; color: var(--text-muted); margin-top: 18px;">
-              * Modeled calculation based on Indian Census commuter trip distributions, CEA emission factors, and World Health Organization urban air pollution health valuations. Illustrative demo projection for hackathon evaluation.
-            </div>
+            <div id="cityAssumptions" class="assumption-list"></div>
           </div>
         </div>
 
@@ -912,12 +922,12 @@
             <div class="roadmap-header">
               <div class="roadmap-title-row">
                 <span class="roadmap-phase-tag">PHASE 1</span>
-                <b>HACKATHON LAUNCH & VERIFIABLE PROTOTYPE (CURRENT)</b>
+                <b>HACKATHON PROTOTYPE (CURRENT)</b>
               </div>
-              <span class="mono" style="font-size: 12px; color: var(--lime);">Q4 2026 • LIVE</span>
+              <span class="mono" style="font-size: 12px; color: var(--lime);">Q4 2026 · CURRENT</span>
             </div>
             <div class="roadmap-body">
-              Deployment of client frontend, centralized Indian CEA emissions engine, Portal Layer 0 testnet smart contract simulation, and Azure architecture blueprints.
+              Static front end with a documented emissions model, sample data, contract source, and an optional Portal V3 testnet connector. Azure integrations are not built and no contract deployment is bundled.
             </div>
           </div>
 
@@ -930,7 +940,7 @@
               <span class="mono" style="font-size: 12px; color: var(--text-muted);">Q1 2027</span>
             </div>
             <div class="roadmap-body">
-              Integration with onboard vehicle diagnostics (OBD-II dongles), Azure IoT Edge gateways, and automated GPS route trip verification without manual user input.
+              Planned idea: vehicle diagnostics (OBD-II), IoT gateways and automated GPS verification so trips need not be self-reported.
             </div>
           </div>
 
@@ -943,7 +953,7 @@
               <span class="mono" style="font-size: 12px; color: var(--text-muted);">Q2 2027</span>
             </div>
             <div class="roadmap-body">
-              Direct telemetry feeds from Ather Energy, Tata Passenger Electric Mobility, and Ola Electric. Integration with state DISCOM smart meters for verifiable solar charging proofs.
+              Aspirational: telemetry from EV makers and DISCOM smart-meter data. No partnerships or integrations exist.
             </div>
           </div>
 
@@ -956,7 +966,7 @@
               <span class="mono" style="font-size: 12px; color: var(--text-muted);">Q4 2027</span>
             </div>
             <div class="roadmap-body">
-              Aggregating verified on-chain commuter avoided carbon into certified municipal carbon credit tranches, redeemable by corporate green fleets on Portal Layer 0.
+              Exploratory idea only. Nothing in this prototype is a certified carbon credit, and none of its numbers could be used as one.
             </div>
           </div>
         </div>
@@ -973,6 +983,20 @@
         </div>
       </div>
     </section>
+
+    <!-- ================= METHODOLOGY & DATA STATUS ================= -->
+    <section class="sec" id="methodology">
+      <div class="wrap">
+        <div class="sec-head reveal">
+          <div>
+            <span class="sec-tag">METHODOLOGY &amp; DATA STATUS</span>
+            <h2 class="sec-title">How the numbers<br><span class="hl">are made.</span></h2>
+          </div>
+          <p class="sec-desc">One calculation model feeds every figure on this page. This section is generated from the same constants the code uses.</p>
+        </div>
+        <div id="methodologyBody" class="methodology-body reveal"></div>
+      </div>
+    </section>
   </main>
 
   <!-- Footer -->
@@ -985,7 +1009,7 @@
             Created for <b>Build with Bharat 5.0</b> (Microsoft Azure ecosystem) and <b>Portaldot Hacker House 2026</b> (Portal Layer 0 EVM ecosystem).
           </p>
           <p style="font-size: 12.5px; color: var(--text-muted); margin-top: 10px;">
-            * Scientific Disclaimer: All emissions calculations, scores, and reward simulations presented in this prototype use transparent modeling assumptions based on published CEA Indian Power Sector baselines and IPCC guidelines. They represent modeled estimates for demonstration purposes and do not constitute certified carbon credits.
+            * Scientific Disclaimer: All emissions figures, scores and rewards in this prototype are modelled estimates built from the assumptions in the methodology section, several of which are illustrative and unverified. They are not certified carbon credits. Profiles, leaderboards and histories are fictional sample data.
           </p>
         </div>
 
@@ -1000,24 +1024,25 @@
             <li><a href="#web3">05 Web3 Reward Engine</a></li>
             <li><a href="#architecture">06 Why Portal + Azure?</a></li>
             <li><a href="#future">07 The Future City</a></li>
+            <li><a href="#methodology">Methodology &amp; data status</a></li>
           </ul>
         </div>
 
         <div class="footer-col">
           <h4>Ecosystem & Tech</h4>
           <ul class="footer-links">
-            <li><a href="https://azure.microsoft.com" target="_blank" rel="noopener">Microsoft Azure Cloud</a></li>
-            <li><a href="https://portal.net" target="_blank" rel="noopener">Portal Layer 0 EVM</a></li>
+            <li><a href="https://azure.microsoft.com" target="_blank" rel="noopener">Microsoft Azure (planned)</a></li>
+            <li>Portal V3 testnet (chain 420420777)</li>
             <li><a href="#architecture">Solidity Smart Contracts</a></li>
-            <li><a href="#lab">CEA Carbon Baseline DB</a></li>
-            <li><a href="#architecture">Azure Maps & Functions</a></li>
+            <li><a href="https://cea.nic.in/" target="_blank" rel="noopener">CEA (CO2 Baseline Database)</a></li>
+            <li><a href="#methodology">Methodology &amp; data status</a></li>
           </ul>
         </div>
       </div>
 
       <div class="footer-bottom-bar">
         <span>© 2026 MissionEV. Living Climate Intelligence.</span>
-        <span>TESTNET ENVIRONMENT: PORTAL LAYER 0 • AZURE ORACLE VERIFIED</span>
+        <span>PROTOTYPE · DEMO DATA · NOT CERTIFIED CARBON CREDITS</span>
       </div>
     </div>
   </footer>
@@ -1047,10 +1072,9 @@
         MissionEV: Microsoft Azure × Portal Layer 0 Architecture
       </h3>
       <div style="font-size: 14.5px; color: var(--text-muted); line-height: 1.65;">
-        <p><b>1. Telemetry Ingestion & Proof Generation:</b> Commuters log transit coordinates via the client PWA. In fleet environments, Azure IoT Edge devices ingest OBD-II and CAN bus telemetry, relaying batch events to Azure Event Hubs.</p>
-        <p><b>2. Deterministic Serverless Oracle:</b> Azure Functions execute against the Central Electricity Authority (CEA) carbon baseline database. Functions calculate lifecycle emissions (g CO2e/km), compare against baseline ICE thresholds, and generate an EIP-712 structured payload signed by an Azure Key Vault-managed oracle key.</p>
-        <p><b>3. Portal Layer 0 EVM Execution:</b> The signed payload is submitted to the <code>MissionEV.sol</code> smart contract deployed on Portal Layer 0 EVM. The contract validates cryptographic signatures, updates commuter streaks, and mints $MEV reward points. Portal Layer 0's low fees and sub-second finality make high-frequency transit micro-rewards economically viable.</p>
-        <p><b>4. Enterprise Storage & Municipal Intelligence:</b> Encrypted commuter logs and wallet bindings are indexed in Azure Cosmos DB. Microsoft Fabric and Power BI ingest anonymized aggregated mobility streams to offer city municipal corporations macro real-time decarbonization dashboards.</p>
+        <p><b>Implemented today:</b> a static web app that computes emissions in the browser, and the source of <code>EVMobilityRewards.sol</code>, which records self-reported journeys on an EVM chain (distance 1 to 500 km, unique journey ID, score and streak, optional token payout from the contract's own balance).</p>
+        <p><b>Not implemented (design only):</b> an Azure Functions oracle that would compute and sign emissions, Azure Maps route validation, Event Hubs / IoT telemetry, Cosmos DB storage and Fabric / Power BI dashboards. <code>MissionEV.sol</code> sketches the oracle-signature flow but is not wired to this site.</p>
+        <p><b>Trust model:</b> today the caller reports their own distance and the contract applies fixed per-km constants. Nothing prevents false reports until a verification layer exists. Avoided emissions shown anywhere on this site are modelled estimates, not certified carbon credits.</p>
       </div>
     </div>
   </div>

@@ -2496,3 +2496,109 @@ footer.site-footer {
   margin-top: 4px;
   display: block;
 }
+
+/* ===================== Audit additions: status, methodology, honest labels ===================== */
+.lab-explain {
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--text-muted);
+  background: var(--panel-bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  display: grid;
+  gap: 6px;
+}
+.cfg-list { display: grid; gap: 6px; margin: 12px 0 4px; }
+.cfg-row {
+  display: grid;
+  grid-template-columns: minmax(150px, 220px) 1fr;
+  gap: 12px;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-dark);
+  border: 1px solid var(--line);
+  font-size: 12.5px;
+}
+.cfg-k { color: var(--text-muted); }
+.cfg-v { overflow-wrap: anywhere; }
+.cfg-ok { border-left: 3px solid var(--emerald); }
+.cfg-warn { border-left: 3px solid #FFC145; }
+.cfg-bad { border-left: 3px solid var(--coral); }
+.cfg-bad .cfg-v { color: var(--coral); }
+.tx-line.tx-failed, .tx-line.tx-rejected { color: var(--coral); }
+.tx-line.tx-confirmed { color: var(--lime); font-weight: 700; }
+.real-tx-receipt-card > div > div { margin-top: 6px; overflow-wrap: anywhere; }
+#submitRealOnChainBtn:disabled { opacity: 0.6; cursor: not-allowed; }
+.assumption-list {
+  margin-top: 18px;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--text-muted);
+  background: var(--panel-bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 14px 18px;
+}
+.assumption-list ul { margin: 8px 0 0; padding-left: 18px; display: grid; gap: 4px; }
+.methodology-body { display: grid; gap: 18px; }
+.method-block {
+  background: var(--panel-bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 18px 22px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+.method-block h4 { margin: 0 0 10px; font-family: var(--font-display); color: var(--text-main); font-size: 16px; }
+.method-block ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; }
+.method-note { font-size: 12.5px; margin: 10px 0 0; }
+.table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.method-table { width: 100%; border-collapse: collapse; font-size: 12.5px; min-width: 520px; }
+.method-table th, .method-table td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.method-table th { color: var(--text-main); font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.04em; }
+.problem-stat:not(.counter-val) { font-size: 30px; line-height: 1.15; }
+
+@media (max-width: 1024px) {
+  .onchain-wallet-stats-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 768px) {
+  .cfg-row { grid-template-columns: 1fr; gap: 2px; }
+  .contract-address-grid { grid-template-columns: 1fr !important; }
+  .onchain-wallet-stats-grid { grid-template-columns: 1fr; }
+  .metrics-summary-bar { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* Mobile overflow fixes found during QA at 375px */
+@media (max-width: 768px) {
+  .telemetry-status-pill { display: none; }
+  .header-right { gap: 8px; min-width: 0; }
+  .web3-mode-selector-deck { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .vis-card-head { flex-wrap: wrap; gap: 8px; }
+  .box-bar { flex-wrap: wrap; gap: 6px; }
+  .wrap { max-width: 100%; }
+  .chip-tag { white-space: normal; }
+  .method-block, .assumption-list, .cfg-row { overflow-wrap: anywhere; }
+}
+@media (max-width: 768px) {
+  .badges-leaderboard-grid > div { min-width: 0; }
+  .lb-row { grid-template-columns: 32px minmax(0, 1fr) auto auto; gap: 8px; padding: 10px; }
+  .lb-row .lb-streak { display: none; }
+  .ticker-band { max-width: 100vw; }
+}
+
+/* Transaction preview: long contract-call text must scroll inside its box, not widen the page */
+.tx-simulator-grid > * { min-width: 0; }
+.tx-solidity-code { overflow-x: auto; max-width: 100%; }
+.tx-receipt-details .r-row { flex-wrap: wrap; gap: 4px 12px; }
+.tx-receipt-details .r-row span { overflow-wrap: anywhere; }
+.tx-call-preview > div[style*="justify-content: space-between"] { flex-wrap: wrap; gap: 6px 14px; }
+
+.methodology-body { grid-template-columns: minmax(0, 1fr); }
+.method-block { min-width: 0; }
+.city-nav-row { flex-wrap: wrap; }
+.city-select-btn, .problem-route-btn { white-space: normal; text-align: left; }
+.dual-route-nav { flex-wrap: wrap; }
+
+main { overflow-x: clip; }

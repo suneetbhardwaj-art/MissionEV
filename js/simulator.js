@@ -1,45 +1,76 @@
 /**
- * MissionEV - Chapter 03: Interactive Mobility Lab Engine
- * Powers the real-time emissions comparison, dynamic SVG charts,
- * weekly mobility mix breakdown, and interactive journey timeline.
+ * MissionEV - Chapter 03: Interactive Mobility Lab
+ * Every number shown here comes from MISSION_EV_DATA.calculate() (see data.js).
+ * After each recalculation a 'missionev:lab-updated' event is dispatched so the transaction
+ * preview and the Portal V3 module read the SAME result instead of recomputing it.
  */
 
 (function () {
   'use strict';
+
+  var DATA = window.MISSION_EV_DATA;
+  var MAX_KM = 200;
 
   var state = {
     mode: 'ev_car',
     distanceKm: 25,
     baseline: 'petrol_avg',
     useGreenTariff: false,
-    // Weekly mobility mix percentages (summing to 100)
-    weeklyMix: {
-      ev: 45,
-      metro: 30,
-      active: 15,
-      fossil: 10
-    },
+    weeklyMix: { ev: 45, metro: 30, active: 15, fossil: 10 },
     weeklyTotalKm: 180,
-    selectedTimelineTripIndex: 0
+    selectedTimelineTripIndex: 0,
+    last: null
   };
 
+  // Sample journeys. Distances and modes are fixed; every emission figure is computed.
   var timelineTrips = [
-    { title: 'Morning Commute', route: 'CyberHub → Central Delhi', km: 26.4, mode: 'ev_car', time: '08:30 AM', note: 'Avoided 3.38 kg CO2 vs ICE baseline' },
-    { title: 'Client Meeting Run', route: 'Connaught Place → Noida Sec 62', km: 18.2, mode: 'metro', time: '01:15 PM', note: 'Mass transit avoided 3.06 kg CO2' },
-    { title: 'Lunch Errands', route: 'Sector 18 Hub Loop', km: 3.5, mode: 'active', time: '02:30 PM', note: 'Zero tailpipe, 100% human-powered active transit' },
-    { title: 'Evening Return', route: 'Noida Sec 62 → CyberHub', km: 28.0, mode: 'ev_car', time: '07:15 PM', note: 'Night peak charging via renewable EV tariff' }
+    { title: 'Morning Commute', route: 'CyberHub → Central Delhi', km: 26.4, mode: 'ev_car', time: 'Sample 08:30' },
+    { title: 'Client Meeting Run', route: 'Connaught Place → Noida Sec 62', km: 18.2, mode: 'metro', time: 'Sample 13:15' },
+    { title: 'Lunch Errands', route: 'Sector 18 Hub Loop', km: 3.5, mode: 'active', time: 'Sample 14:30' },
+    { title: 'Evening Return', route: 'Noida Sec 62 → CyberHub', km: 28.0, mode: 'ev_car', time: 'Sample 19:15' }
   ];
 
+  function clampKm(v) {
+    var n = parseFloat(v);
+    if (isNaN(n)) n = 1;
+    return Math.min(MAX_KM, Math.max(1, n));
+  }
+
   function init() {
+    populateBaselineSelect();
     setupEventListeners();
     updateCalculations();
-    renderEmissionsChart();
     renderWeeklyMix();
     renderTimeline();
+    window.MISSION_EV_LAB = {
+      getState: function () { return { mode: state.mode, distanceKm: state.distanceKm, baseline: state.baseline, useGreenTariff: state.useGreenTariff }; },
+      getResult: function () { return state.last; }
+    };
+    document.dispatchEvent(new CustomEvent('missionev:lab-updated', { detail: state.last }));
+  }
+
+  // Option labels are generated from the model so they can never disagree with it.
+  function populateBaselineSelect() {
+    var sel = document.getElementById('labBaselineSelect');
+    if (!sel) return;
+    sel.innerHTML = '';
+    Object.keys(DATA.baselines).forEach(function (k) {
+      var b = DATA.baselines[k];
+      var opt = document.createElement('option');
+      opt.value = k;
+      opt.textContent = b.name + ' (' + b.factor_g_km + ' g CO2e/km)';
+      if (k === state.baseline) opt.selected = true;
+      sel.appendChild(opt);
+    });
+  }
+
+  function syncPresetHighlight() {
+    document.querySelectorAll('.dist-preset-btn').forEach(function (b) {
+      b.classList.toggle('active', parseFloat(b.getAttribute('data-km')) === state.distanceKm);
+    });
   }
 
   function setupEventListeners() {
-    // Mode selector pills
     var modeButtons = document.querySelectorAll('.lab-mode-btn');
     modeButtons.forEach(function (btn) {
       btn.addEventListener('click', function () {
@@ -51,56 +82,62 @@
       });
     });
 
-    // Distance Slider & Input
     var distSlider = document.getElementById('labDistanceSlider');
     var distNumber = document.getElementById('labDistanceNumber');
     if (distSlider && distNumber) {
+      distSlider.max = MAX_KM;
+      distNumber.max = MAX_KM;
       distSlider.addEventListener('input', function () {
         distNumber.value = distSlider.value;
-        state.distanceKm = parseFloat(distSlider.value) || 1;
+        state.distanceKm = clampKm(distSlider.value);
+        syncPresetHighlight();
         updateCalculations();
       });
       distNumber.addEventListener('input', function () {
-        var val = Math.min(200, Math.max(1, parseFloat(distNumber.value) || 1));
-        distSlider.value = val;
-        state.distanceKm = val;
+        if (distNumber.value === '') return;      // allow clearing while typing
+        state.distanceKm = clampKm(distNumber.value);
+        distSlider.value = state.distanceKm;
+        syncPresetHighlight();
+        updateCalculations();
+      });
+      distNumber.addEventListener('change', function () {
+        state.distanceKm = clampKm(distNumber.value);
+        distNumber.value = state.distanceKm;    // show the value actually used
+        distSlider.value = state.distanceKm;
+        syncPresetHighlight();
         updateCalculations();
       });
     }
 
-    // Quick distance preset buttons
-    var presetButtons = document.querySelectorAll('.dist-preset-btn');
-    presetButtons.forEach(function (btn) {
+    document.querySelectorAll('.dist-preset-btn').forEach(function (btn) {
       btn.addEventListener('click', function () {
-        presetButtons.forEach(function (b) { b.classList.remove('active'); });
-        btn.classList.add('active');
-        var km = parseFloat(btn.getAttribute('data-km'));
+        var km = clampKm(btn.getAttribute('data-km'));
         state.distanceKm = km;
         if (distSlider) distSlider.value = km;
         if (distNumber) distNumber.value = km;
+        syncPresetHighlight();
         updateCalculations();
       });
     });
 
-    // Baseline selector dropdown
     var baselineSelect = document.getElementById('labBaselineSelect');
     if (baselineSelect) {
       baselineSelect.addEventListener('change', function () {
         state.baseline = baselineSelect.value;
         updateCalculations();
+        renderWeeklyMix();
       });
     }
 
-    // Green Tariff / Renewable Charging checkbox toggle
     var greenToggle = document.getElementById('labGreenToggle');
     if (greenToggle) {
       greenToggle.addEventListener('change', function () {
         state.useGreenTariff = greenToggle.checked;
         updateCalculations();
+        renderWeeklyMix();
       });
     }
 
-    // Reset Lab Button
     var resetBtn = document.getElementById('labResetBtn');
     if (resetBtn) {
       resetBtn.addEventListener('click', function () {
@@ -108,246 +145,248 @@
         state.distanceKm = 25;
         state.baseline = 'petrol_avg';
         state.useGreenTariff = false;
+        state.weeklyMix = { ev: 45, metro: 30, active: 15, fossil: 10 };
+        state.weeklyTotalKm = 180;
 
         modeButtons.forEach(function (b) {
           var isDefault = b.getAttribute('data-mode') === 'ev_car';
           b.classList.toggle('active', isDefault);
           b.setAttribute('aria-pressed', isDefault ? 'true' : 'false');
         });
-
         if (distSlider) distSlider.value = 25;
         if (distNumber) distNumber.value = 25;
         if (baselineSelect) baselineSelect.value = 'petrol_avg';
         if (greenToggle) greenToggle.checked = false;
+        [['mixEvSlider', 45], ['mixMetroSlider', 30], ['mixActiveSlider', 15], ['mixFossilSlider', 10]].forEach(function (p) {
+          var el = document.getElementById(p[0]);
+          if (el) el.value = p[1];
+        });
+        var wk = document.getElementById('weeklyDistanceInput');
+        if (wk) wk.value = 180;
 
+        syncPresetHighlight();
         updateCalculations();
-        showNotification('Mobility Lab parameters reset to defaults');
+        renderWeeklyMix();
+        showNotification('Mobility Lab reset to defaults');
       });
     }
 
-    // Weekly Mix sliders
-    var mixEv = document.getElementById('mixEvSlider');
-    var mixMetro = document.getElementById('mixMetroSlider');
-    var mixActive = document.getElementById('mixActiveSlider');
-    var mixFossil = document.getElementById('mixFossilSlider');
-
-    function onMixChange() {
-      if (mixEv) state.weeklyMix.ev = parseInt(mixEv.value, 10);
-      if (mixMetro) state.weeklyMix.metro = parseInt(mixMetro.value, 10);
-      if (mixActive) state.weeklyMix.active = parseInt(mixActive.value, 10);
-      if (mixFossil) state.weeklyMix.fossil = parseInt(mixFossil.value, 10);
-      renderWeeklyMix();
-    }
-
-    [mixEv, mixMetro, mixActive, mixFossil].forEach(function (slider) {
-      if (slider) slider.addEventListener('input', onMixChange);
+    var mixIds = { mixEvSlider: 'ev', mixMetroSlider: 'metro', mixActiveSlider: 'active', mixFossilSlider: 'fossil' };
+    Object.keys(mixIds).forEach(function (id) {
+      var el = document.getElementById(id);
+      if (!el) return;
+      el.addEventListener('input', function () {
+        state.weeklyMix[mixIds[id]] = parseInt(el.value, 10) || 0;
+        renderWeeklyMix();
+      });
     });
 
-    // Weekly distance input
     var weekKmInput = document.getElementById('weeklyDistanceInput');
     if (weekKmInput) {
       weekKmInput.addEventListener('input', function () {
-        state.weeklyTotalKm = Math.max(10, parseFloat(weekKmInput.value) || 100);
+        state.weeklyTotalKm = Math.max(10, parseFloat(weekKmInput.value) || 10);
         renderWeeklyMix();
       });
     }
   }
 
   function updateCalculations() {
-    var res = window.MISSION_EV_DATA.calculate(
-      state.distanceKm,
-      state.mode,
-      state.baseline,
-      state.useGreenTariff
-    );
+    var res = DATA.calculate(state.distanceKm, state.mode, state.baseline, state.useGreenTariff);
+    state.last = res;
 
-    // Update dynamic text elements
-    setText('labActualKg', res.journeyEmissionsKg + ' kg');
-    setText('labBaselineKg', res.baselineEmissionsKg + ' kg');
-    setText('labAvoidedKg', res.avoidedKg + ' kg');
-    setText('labRewardTokens', '+' + res.rewardPoints + ' MEV');
-    setText('labScoreDelta', (res.scoreDelta > 0 ? '+' : '') + res.scoreDelta + ' pts');
-    setText('labTreesEquiv', res.treesEquivalent + ' tree-days');
-    setText('labPercentReduced', res.percentReduction + '%');
+    setText('labActualKg', DATA.fmtKg(res.journeyEmissionsKg) + ' kg');
+    setText('labBaselineKg', DATA.fmtKg(res.baselineEmissionsKg) + ' kg');
+    setText('labAvoidedKg', DATA.fmtSignedKg(res.avoidedKg) + ' kg');
+    setText('labRewardTokens', '+' + res.rewardPoints + ' pts');
 
-    // Update mode badge & details
+    var avoidedEl = document.getElementById('labAvoidedKg');
+    if (avoidedEl) {
+      avoidedEl.classList.toggle('hl', !res.isAboveBaseline);
+      avoidedEl.style.color = res.isAboveBaseline ? 'var(--coral)' : '';
+    }
+
+    var note;
+    if (res.avoidedKg > 0.0049) {
+      note = 'Avoided = baseline − journey. This journey emits ' + DATA.fmtKg(res.avoidedKg) + ' kg LESS than the baseline.';
+    } else if (res.avoidedKg < -0.0049) {
+      note = 'Negative: this journey emits ' + DATA.fmtKg(-res.avoidedKg) + ' kg MORE than the selected baseline, so nothing is avoided and no demo points are earned.';
+    } else {
+      note = 'This journey emits the same as the selected baseline, so nothing is avoided.';
+    }
+    setText('labAvoidedNote', note);
+
+    setText('labFactorLine',
+      'Factor used: ' + res.factor_g_km.toFixed(1) + ' g CO2e/km (' + factorExplanation(res) + ') vs baseline ' + res.baseline_g_km + ' g CO2e/km. ' +
+      'Demo points: ' + DATA.model.demoPointsPerKgAvoided + ' per kg avoided + mode bonus (illustrative, not the contract rule). ' +
+      'Demo score change: ' + (res.scoreDelta > 0 ? '+' : '') + res.scoreDelta + '.');
+
     setText('labModeName', res.mode.name);
     setText('labModeBadge', res.mode.badge);
-    setText('labEfficiency', res.mode.efficiency_desc);
-    setText('labTailpipeVal', res.tailpipeKg + ' kg (0 direct at vehicle tailpipe)');
-    setText('labLifecycleVal', res.journeyEmissionsKg + ' kg (' + (state.useGreenTariff ? 'Renewable/Solar Solar Tariff' : 'National Grid Factor 0.71 kg/kWh') + ')');
+    setText('labEfficiency', DATA.efficiencyText(res.mode.id));
 
-    // Update visual bars & SVG chart
-    renderEmissionsChart(res);
-
-    // Synchronize Web3 Transaction Preview with current lab selection
-    if (window.MISSION_EV_SYNC_TX) {
-      window.MISSION_EV_SYNC_TX(res);
+    var greenHint = document.getElementById('labGreenHint');
+    if (greenHint) {
+      greenHint.textContent = 'Electric modes only: uses ' + DATA.model.solarGramsPerKWh + ' g CO2e/kWh (solar lifecycle) instead of the ' +
+        DATA.model.gridGramsPerKWh + ' g CO2e/kWh grid average. Fossil and walking/cycling are unaffected.';
     }
+
+    renderEmissionsChart(res);
+    refreshTimelineNotes();
+
+    document.dispatchEvent(new CustomEvent('missionev:lab-updated', { detail: res }));
   }
 
-  /**
-   * Visualization A: Emissions Comparison SVG Bar Chart
-   */
-  function renderEmissionsChart(res) {
-    if (!res) {
-      res = window.MISSION_EV_DATA.calculate(state.distanceKm, state.mode, state.baseline, state.useGreenTariff);
+  function factorExplanation(res) {
+    var m = res.mode;
+    if (m.kind === 'electric') {
+      return m.kWhPerKm.toFixed(3) + ' kWh/km × ' + (res.useGreenTariff ? DATA.model.solarGramsPerKWh : DATA.model.gridGramsPerKWh) + ' g/kWh';
     }
+    return m.gPerKm === 0 ? 'no direct emissions' : 'fixed project factor';
+  }
 
+  /** Visualization A: SVG comparison. Heights come straight from the computed result. */
+  function renderEmissionsChart(res) {
     var chartContainer = document.getElementById('labComparisonSvg');
     if (!chartContainer) return;
 
-    var maxVal = Math.max(res.baselineEmissionsKg, res.journeyEmissionsKg, 0.5) * 1.25;
-    var chartW = 440;
     var chartH = 180;
+    var maxVal = Math.max(res.baselineEmissionsKg, res.journeyEmissionsKg, 0.5) * 1.25;
     var barWidth = 64;
-
     var baselineHeight = (res.baselineEmissionsKg / maxVal) * 130;
     var actualHeight = (res.journeyEmissionsKg / maxVal) * 130;
-    var avoidedHeight = Math.max(0, baselineHeight - actualHeight);
-
     var baselineY = chartH - 30 - baselineHeight;
     var actualY = chartH - 30 - actualHeight;
+    var above = res.isAboveBaseline;
 
-    var svgHtml = '<svg viewBox="0 0 560 ' + chartH + '" width="100%" height="100%" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Emissions Comparison Chart">';
-    
-    // Grid baseline lines
-    svgHtml += '<line x1="40" y1="' + (chartH - 30) + '" x2="540" y2="' + (chartH - 30) + '" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>';
-    svgHtml += '<line x1="40" y1="' + (chartH - 95) + '" x2="540" y2="' + (chartH - 95) + '" stroke="rgba(255,255,255,0.06)" stroke-dasharray="3,3" stroke-width="1"/>';
-    svgHtml += '<line x1="40" y1="' + (chartH - 160) + '" x2="540" y2="' + (chartH - 160) + '" stroke="rgba(255,255,255,0.06)" stroke-dasharray="3,3" stroke-width="1"/>';
+    var svg = '<svg viewBox="0 0 560 ' + chartH + '" width="100%" height="100%" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Emissions comparison chart">';
+    svg += '<line x1="40" y1="' + (chartH - 30) + '" x2="540" y2="' + (chartH - 30) + '" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>';
+    svg += '<line x1="40" y1="' + (chartH - 95) + '" x2="540" y2="' + (chartH - 95) + '" stroke="rgba(255,255,255,0.06)" stroke-dasharray="3,3" stroke-width="1"/>';
+    svg += '<line x1="40" y1="' + (chartH - 160) + '" x2="540" y2="' + (chartH - 160) + '" stroke="rgba(255,255,255,0.06)" stroke-dasharray="3,3" stroke-width="1"/>';
 
-    // Baseline Bar (Fossil benchmark)
     var bar1X = 80;
-    svgHtml += '<g class="chart-bar-group" tabindex="0" data-tooltip="Baseline ICE: ' + res.baselineEmissionsKg + ' kg CO2e">';
-    svgHtml += '<rect x="' + bar1X + '" y="' + baselineY + '" width="' + barWidth + '" height="' + baselineHeight + '" rx="6" fill="#FF5B3A" opacity="0.85" />';
-    svgHtml += '<text x="' + (bar1X + barWidth / 2) + '" y="' + (baselineY - 8) + '" text-anchor="middle" fill="#FF5B3A" font-size="12" font-family="DM Mono" font-weight="600">' + res.baselineEmissionsKg + ' kg</text>';
-    svgHtml += '<text x="' + (bar1X + barWidth / 2) + '" y="' + (chartH - 12) + '" text-anchor="middle" fill="#94A79A" font-size="11" font-family="Space Grotesk">Baseline ICE</text>';
-    svgHtml += '</g>';
+    svg += '<g class="chart-bar-group" tabindex="0" data-tooltip="Baseline (' + res.baseline.name + '): ' + DATA.fmtKg(res.baselineEmissionsKg) + ' kg CO2e at ' + res.baseline_g_km + ' g/km">';
+    svg += '<rect x="' + bar1X + '" y="' + baselineY + '" width="' + barWidth + '" height="' + Math.max(baselineHeight, 2) + '" rx="6" fill="#FF5B3A" opacity="0.85" />';
+    svg += '<text x="' + (bar1X + barWidth / 2) + '" y="' + (baselineY - 8) + '" text-anchor="middle" fill="#FF5B3A" font-size="12" font-family="DM Mono" font-weight="600">' + DATA.fmtKg(res.baselineEmissionsKg) + ' kg</text>';
+    svg += '<text x="' + (bar1X + barWidth / 2) + '" y="' + (chartH - 12) + '" text-anchor="middle" fill="#94A79A" font-size="11" font-family="Space Grotesk">Baseline</text>';
+    svg += '</g>';
 
-    // Selected Mode Bar (Clean / EV)
     var bar2X = 260;
-    var actualColor = res.mode.category === 'fossil' ? '#FF5B3A' : '#B8FF45';
-    svgHtml += '<g class="chart-bar-group" tabindex="0" data-tooltip="' + res.mode.name + ': ' + res.journeyEmissionsKg + ' kg CO2e">';
-    svgHtml += '<rect x="' + bar2X + '" y="' + actualY + '" width="' + barWidth + '" height="' + Math.max(actualHeight, 4) + '" rx="6" fill="' + actualColor + '" />';
-    svgHtml += '<text x="' + (bar2X + barWidth / 2) + '" y="' + (actualY - 8) + '" text-anchor="middle" fill="' + actualColor + '" font-size="12" font-family="DM Mono" font-weight="600">' + res.journeyEmissionsKg + ' kg</text>';
-    svgHtml += '<text x="' + (bar2X + barWidth / 2) + '" y="' + (chartH - 12) + '" text-anchor="middle" fill="' + actualColor + '" font-size="11" font-family="Space Grotesk">' + res.mode.name.split(' ')[0] + '</text>';
-    svgHtml += '</g>';
+    var actualColor = above || res.mode.category === 'fossil' ? '#FF5B3A' : '#B8FF45';
+    svg += '<g class="chart-bar-group" tabindex="0" data-tooltip="' + res.mode.name + ': ' + DATA.fmtKg(res.journeyEmissionsKg) + ' kg CO2e at ' + res.factor_g_km.toFixed(1) + ' g/km">';
+    svg += '<rect x="' + bar2X + '" y="' + actualY + '" width="' + barWidth + '" height="' + Math.max(actualHeight, 4) + '" rx="6" fill="' + actualColor + '" />';
+    svg += '<text x="' + (bar2X + barWidth / 2) + '" y="' + (actualY - 8) + '" text-anchor="middle" fill="' + actualColor + '" font-size="12" font-family="DM Mono" font-weight="600">' + DATA.fmtKg(res.journeyEmissionsKg) + ' kg</text>';
+    svg += '<text x="' + (bar2X + barWidth / 2) + '" y="' + (chartH - 12) + '" text-anchor="middle" fill="' + actualColor + '" font-size="11" font-family="Space Grotesk">Selected</text>';
+    svg += '</g>';
 
-    // Avoided Delta Bracket
-    if (res.avoidedKg > 0) {
-      svgHtml += '<g class="avoided-bracket">';
+    var diffColor = above ? '#FF5B3A' : '#20D89A';
+    if (Math.abs(res.avoidedKg) >= 0.005) {
       var bracketX = bar2X + barWidth + 14;
       var bracketEndX = bracketX + 12;
-      // vertical bracket lines
-      svgHtml += '<line x1="' + bracketX + '" y1="' + baselineY + '" x2="' + bracketEndX + '" y2="' + baselineY + '" stroke="#20D89A" stroke-width="1.5"/>';
-      svgHtml += '<line x1="' + bracketEndX + '" y1="' + baselineY + '" x2="' + bracketEndX + '" y2="' + actualY + '" stroke="#20D89A" stroke-width="1.5" stroke-dasharray="3,2"/>';
-      svgHtml += '<line x1="' + bracketX + '" y1="' + actualY + '" x2="' + bracketEndX + '" y2="' + actualY + '" stroke="#20D89A" stroke-width="1.5"/>';
-      // label
-      var midY = baselineY + (actualY - baselineY) / 2;
-      svgHtml += '<text x="' + (bracketEndX + 8) + '" y="' + (midY + 4) + '" fill="#20D89A" font-size="11" font-family="DM Mono" font-weight="700">-' + res.avoidedKg + ' kg</text>';
-      svgHtml += '<text x="' + (bracketEndX + 8) + '" y="' + (midY + 18) + '" fill="#20D89A" font-size="10" font-family="DM Mono">AVOIDED</text>';
-      svgHtml += '</g>';
+      var topY = Math.min(baselineY, actualY);
+      var botY = Math.max(baselineY, actualY);
+      svg += '<g class="avoided-bracket">';
+      svg += '<line x1="' + bracketX + '" y1="' + topY + '" x2="' + bracketEndX + '" y2="' + topY + '" stroke="' + diffColor + '" stroke-width="1.5"/>';
+      svg += '<line x1="' + bracketEndX + '" y1="' + topY + '" x2="' + bracketEndX + '" y2="' + botY + '" stroke="' + diffColor + '" stroke-width="1.5" stroke-dasharray="3,2"/>';
+      svg += '<line x1="' + bracketX + '" y1="' + botY + '" x2="' + bracketEndX + '" y2="' + botY + '" stroke="' + diffColor + '" stroke-width="1.5"/>';
+      var midY = topY + (botY - topY) / 2;
+      svg += '<text x="' + (bracketEndX + 8) + '" y="' + (midY + 4) + '" fill="' + diffColor + '" font-size="11" font-family="DM Mono" font-weight="700">' + DATA.fmtSignedKg(res.avoidedKg) + ' kg</text>';
+      svg += '<text x="' + (bracketEndX + 8) + '" y="' + (midY + 18) + '" fill="' + diffColor + '" font-size="10" font-family="DM Mono">' + (above ? 'ABOVE BASELINE' : 'AVOIDED') + '</text>';
+      svg += '</g>';
     }
+    svg += '</svg>';
+    chartContainer.innerHTML = svg;
 
-    svgHtml += '</svg>';
-    chartContainer.innerHTML = svgHtml;
-
-    // Attach hover tooltips
-    var barGroups = chartContainer.querySelectorAll('.chart-bar-group');
-    barGroups.forEach(function (bg) {
-      bg.addEventListener('mouseenter', function (e) {
-        var tipText = bg.getAttribute('data-tooltip');
-        showChartTooltip(tipText, e.clientX, e.clientY);
-      });
+    chartContainer.querySelectorAll('.chart-bar-group').forEach(function (bg) {
+      bg.addEventListener('mouseenter', function (e) { showChartTooltip(bg.getAttribute('data-tooltip'), e.clientX, e.clientY); });
       bg.addEventListener('mouseleave', hideChartTooltip);
+      bg.addEventListener('focus', function () {
+        var r = bg.getBoundingClientRect();
+        showChartTooltip(bg.getAttribute('data-tooltip'), r.left, r.top);
+      });
+      bg.addEventListener('blur', hideChartTooltip);
     });
   }
 
-  /**
-   * Visualization B: Weekly Mobility Mix Interactive Breakdown
-   */
+  /** Visualization B: weekly mix, built from the same factors and the same baseline. */
   function renderWeeklyMix() {
-    var totalPct = state.weeklyMix.ev + state.weeklyMix.metro + state.weeklyMix.active + state.weeklyMix.fossil;
-    var normEv = totalPct > 0 ? (state.weeklyMix.ev / totalPct) : 0;
-    var normMetro = totalPct > 0 ? (state.weeklyMix.metro / totalPct) : 0;
-    var normActive = totalPct > 0 ? (state.weeklyMix.active / totalPct) : 0;
-    var normFossil = totalPct > 0 ? (state.weeklyMix.fossil / totalPct) : 0;
+    var mix = state.weeklyMix;
+    var total = mix.ev + mix.metro + mix.active + mix.fossil;
+    var n = function (v) { return total > 0 ? v / total : 0; };
+    var shares = { ev: n(mix.ev), metro: n(mix.metro), active: n(mix.active), fossil: n(mix.fossil) };
 
-    // Calculate weekly avoided emissions vs 100% ICE baseline
-    var weeklyKm = state.weeklyTotalKm;
-    var baselineKg = (weeklyKm * 196) / 1000;
-    var actualKg = (
-      (weeklyKm * normEv * 68) +
-      (weeklyKm * normMetro * 28) +
-      (weeklyKm * normActive * 0) +
-      (weeklyKm * normFossil * 196)
-    ) / 1000;
+    var km = state.weeklyTotalKm;
+    var base = DATA.baselines[state.baseline] || DATA.baselines.petrol_avg;
+    var g = state.useGreenTariff;
+    var weeklyActualG = km * (
+      shares.ev * DATA.factorGramsPerKm('ev_car', g) +
+      shares.metro * DATA.factorGramsPerKm('metro', g) +
+      shares.active * DATA.factorGramsPerKm('active', g) +
+      shares.fossil * DATA.factorGramsPerKm('petrol_car', g)
+    );
+    var weeklyBaselineKg = (km * base.factor_g_km) / 1000;
+    var weeklyDiffKg = weeklyBaselineKg - weeklyActualG / 1000;     // signed: baseline − mix
+    var annualKg = weeklyDiffKg * 52;
+    var trees = annualKg / DATA.model.treeKgPerYear;
 
-    var avoidedWeeklyKg = Math.max(0, baselineKg - actualKg);
-    var annualSavedKg = avoidedWeeklyKg * 52;
-    var treesAbsorbedYear = (annualSavedKg / 22).toFixed(1); // 1 mature tree absorbs ~22kg CO2/yr
+    setText('mixWeeklyAvoided', DATA.fmtSignedKg(weeklyDiffKg, 1) + ' kg CO2e vs baseline');
+    setText('mixAnnualAvoided', (annualKg >= 0 ? '+' : '−') + Math.abs(annualKg / 1000).toFixed(2) + ' t CO2e / yr');
+    setText('mixTreesEquiv', (trees >= 0 ? '≈ ' : '≈ −') + Math.abs(trees).toFixed(1) + ' tree-years (rough equivalence)');
 
-    setText('mixWeeklyAvoided', avoidedWeeklyKg.toFixed(1) + ' kg CO2');
-    setText('mixAnnualAvoided', (annualSavedKg / 1000).toFixed(2) + ' Metric Tons / yr');
-    setText('mixTreesEquiv', treesAbsorbedYear + ' mature trees equivalent');
+    setText('mixEvPct', Math.round(shares.ev * 100) + '%');
+    setText('mixMetroPct', Math.round(shares.metro * 100) + '%');
+    setText('mixActivePct', Math.round(shares.active * 100) + '%');
+    setText('mixFossilPct', Math.round(shares.fossil * 100) + '%');
 
-    // Update percentages text
-    setText('mixEvPct', Math.round(normEv * 100) + '%');
-    setText('mixMetroPct', Math.round(normMetro * 100) + '%');
-    setText('mixActivePct', Math.round(normActive * 100) + '%');
-    setText('mixFossilPct', Math.round(normFossil * 100) + '%');
-
-    // Update progress bar visual
     var barEl = document.getElementById('mixDistributionBar');
     if (barEl) {
-      barEl.innerHTML = 
-        '<div style="width:' + (normEv * 100) + '%; background:#B8FF45;" title="EV: ' + Math.round(normEv * 100) + '%"></div>' +
-        '<div style="width:' + (normMetro * 100) + '%; background:#00F0FF;" title="Metro: ' + Math.round(normMetro * 100) + '%"></div>' +
-        '<div style="width:' + (normActive * 100) + '%; background:#E0FF85;" title="Active: ' + Math.round(normActive * 100) + '%"></div>' +
-        '<div style="width:' + (normFossil * 100) + '%; background:#FF5B3A;" title="ICE: ' + Math.round(normFossil * 100) + '%"></div>';
+      barEl.innerHTML =
+        '<div style="width:' + (shares.ev * 100) + '%; background:#B8FF45;" title="EV: ' + Math.round(shares.ev * 100) + '%"></div>' +
+        '<div style="width:' + (shares.metro * 100) + '%; background:#00F0FF;" title="Metro: ' + Math.round(shares.metro * 100) + '%"></div>' +
+        '<div style="width:' + (shares.active * 100) + '%; background:#E0FF85;" title="Active: ' + Math.round(shares.active * 100) + '%"></div>' +
+        '<div style="width:' + (shares.fossil * 100) + '%; background:#FF5B3A;" title="ICE: ' + Math.round(shares.fossil * 100) + '%"></div>';
     }
   }
 
-  /**
-   * Visualization C: Interactive Journey Impact Timeline
-   */
+  /** Visualization C: sample journeys. Notes are computed from the model, not typed. */
+  function tripNote(trip) {
+    var r = DATA.calculate(trip.km, trip.mode, state.baseline, state.useGreenTariff);
+    if (r.avoidedKg >= 0.005) return DATA.fmtKg(r.avoidedKg) + ' kg CO2e avoided vs ' + r.baseline.name;
+    if (r.avoidedKg <= -0.005) return DATA.fmtKg(-r.avoidedKg) + ' kg CO2e above ' + r.baseline.name;
+    return 'Same as ' + r.baseline.name;
+  }
+
   function renderTimeline() {
     var container = document.getElementById('timelineList');
     if (!container) return;
 
     var html = '';
     timelineTrips.forEach(function (trip, idx) {
-      var isSelected = idx === state.selectedTimelineTripIndex;
-      var modeObj = window.MISSION_EV_DATA.emissionFactors[trip.mode];
-      html += '<div class="timeline-trip-item ' + (isSelected ? 'active' : '') + '" data-index="' + idx + '" tabindex="0">';
+      var modeObj = DATA.emissionFactors[trip.mode];
+      html += '<div class="timeline-trip-item ' + (idx === state.selectedTimelineTripIndex ? 'active' : '') + '" data-index="' + idx + '" tabindex="0" role="button">';
       html += '<div class="timeline-bullet" style="background:' + modeObj.color + '"></div>';
       html += '<div class="timeline-info">';
       html += '<div class="timeline-row"><b class="t-name">' + trip.title + '</b><span class="t-time">' + trip.time + '</span></div>';
       html += '<div class="t-route">' + trip.route + ' (' + trip.km + ' km)</div>';
-      html += '<div class="t-note hl">' + trip.note + '</div>';
+      html += '<div class="t-note hl">' + tripNote(trip) + '</div>';
       html += '</div>';
-      html += '<button type="button" class="btn sm ghost timeline-load-btn" aria-label="Load into simulator">LOAD TRIP</button>';
+      html += '<span class="timeline-load-btn btn sm ghost" aria-hidden="true">LOAD TRIP</span>';
       html += '</div>';
     });
-
     container.innerHTML = html;
 
-    var items = container.querySelectorAll('.timeline-trip-item');
-    items.forEach(function (item) {
-      item.addEventListener('click', function () {
-        var idx = parseInt(item.getAttribute('data-index'), 10);
-        selectTimelineTrip(idx);
-      });
+    container.querySelectorAll('.timeline-trip-item').forEach(function (item) {
+      var load = function () { selectTimelineTrip(parseInt(item.getAttribute('data-index'), 10)); };
+      item.addEventListener('click', load);
       item.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter' || e.key === ' ') {
-          var idx = parseInt(item.getAttribute('data-index'), 10);
-          selectTimelineTrip(idx);
-        }
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); load(); }
       });
     });
-
-    // Initial trip inspection update
     updateTimelineDetail(timelineTrips[state.selectedTimelineTripIndex]);
+  }
+
+  function refreshTimelineNotes() {
+    var notes = document.querySelectorAll('#timelineList .t-note');
+    notes.forEach(function (el, i) { if (timelineTrips[i]) el.textContent = tripNote(timelineTrips[i]); });
   }
 
   function selectTimelineTrip(idx) {
@@ -355,48 +394,43 @@
     var trip = timelineTrips[idx];
     if (!trip) return;
 
-    var items = document.querySelectorAll('.timeline-trip-item');
-    items.forEach(function (it, i) {
-      it.classList.toggle('active', i === idx);
-    });
+    document.querySelectorAll('.timeline-trip-item').forEach(function (it, i) { it.classList.toggle('active', i === idx); });
 
-    // Populate the Mobility Lab with this trip's parameters
     state.mode = trip.mode;
-    state.distanceKm = trip.km;
+    state.distanceKm = clampKm(trip.km);
 
     var distSlider = document.getElementById('labDistanceSlider');
     var distNumber = document.getElementById('labDistanceNumber');
-    if (distSlider) distSlider.value = trip.km;
-    if (distNumber) distNumber.value = trip.km;
+    if (distSlider) distSlider.value = state.distanceKm;
+    if (distNumber) distNumber.value = state.distanceKm;
 
-    var modeButtons = document.querySelectorAll('.lab-mode-btn');
-    modeButtons.forEach(function (b) {
-      var isMatched = b.getAttribute('data-mode') === trip.mode;
-      b.classList.toggle('active', isMatched);
-      b.setAttribute('aria-pressed', isMatched ? 'true' : 'false');
+    document.querySelectorAll('.lab-mode-btn').forEach(function (b) {
+      var matched = b.getAttribute('data-mode') === trip.mode;
+      b.classList.toggle('active', matched);
+      b.setAttribute('aria-pressed', matched ? 'true' : 'false');
     });
 
+    syncPresetHighlight();
     updateCalculations();
     updateTimelineDetail(trip);
-    showNotification('Loaded "' + trip.title + '" into Mobility Lab');
+    showNotification('Loaded "' + trip.title + '" into the Mobility Lab');
   }
 
   function updateTimelineDetail(trip) {
     var detailEl = document.getElementById('timelineInspectionDetail');
     if (!detailEl) return;
-
-    var modeObj = window.MISSION_EV_DATA.emissionFactors[trip.mode];
-    detailEl.innerHTML = 
+    var modeObj = DATA.emissionFactors[trip.mode];
+    detailEl.innerHTML =
       '<div class="timeline-detail-header">' +
-      '<span class="k">INSPECTED TRIP TELEMETRY</span>' +
+      '<span class="k">SAMPLE TRIP DETAILS</span>' +
       '<h4>' + trip.title + '</h4>' +
       '<p>' + trip.route + '</p>' +
       '</div>' +
       '<div class="timeline-detail-metrics">' +
       '<div class="td-metric"><span class="k">DISTANCE</span><b class="v">' + trip.km + ' km</b></div>' +
       '<div class="td-metric"><span class="k">TRANSIT MODE</span><b class="v" style="color:' + modeObj.color + '">' + modeObj.name + '</b></div>' +
-      '<div class="td-metric"><span class="k">DISPATCH TIME</span><b class="v">' + trip.time + '</b></div>' +
-      '<div class="td-metric"><span class="k">STATUS</span><b class="v hl">Azure Geofence Verified</b></div>' +
+      '<div class="td-metric"><span class="k">TIME</span><b class="v">' + trip.time + '</b></div>' +
+      '<div class="td-metric"><span class="k">STATUS</span><b class="v">DEMO DATA, not verified</b></div>' +
       '</div>';
   }
 
@@ -424,9 +458,8 @@
     if (!el) return;
     if (el.textContent !== text) {
       el.textContent = text;
-      // Flash highlight on change
       el.classList.remove('val-updated');
-      void el.offsetWidth; // reflow to restart animation
+      void el.offsetWidth;
       el.classList.add('val-updated');
     }
   }
@@ -436,7 +469,7 @@
     if (!toastContainer) return;
     var t = document.createElement('div');
     t.className = 'toast';
-    t.innerHTML = '⚡ ' + msg;
+    t.textContent = '⚡ ' + msg;
     toastContainer.appendChild(t);
     setTimeout(function () { t.remove(); }, 3200);
   }

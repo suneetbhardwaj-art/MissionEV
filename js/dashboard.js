@@ -1,8 +1,9 @@
 /**
  * MissionEV - Chapter 04: Mobility Profile & Dashboard Engine
- * Implements interactive application dashboard with timeframe filters,
- * score history SVG area chart, trip log filtering, detail drawer,
- * profile switcher, and localStorage persistence.
+ * Everything on this dashboard is DEMO DATA for fictional sample profiles. It is never a
+ * connected user's data: connected-wallet state lives in web3-portal.js (chapter 05).
+ * Trip emissions are computed from the shared model; score history is an illustrative shape
+ * shifted so its last point equals the selected sample profile's score.
  */
 
 (function () {
@@ -15,32 +16,19 @@
 
   var profileData = JSON.parse(JSON.stringify(window.MISSION_EV_DATA.profiles));
 
-  // Historical score datasets for dynamic chart rendering
-  var scoreHistory = {
-    day: [
-      { label: '06:00', score: 838, avoidedKg: 0.0 },
-      { label: '09:00', score: 840, avoidedKg: 1.8 },
-      { label: '12:00', score: 840, avoidedKg: 1.8 },
-      { label: '15:00', score: 841, avoidedKg: 2.2 },
-      { label: '18:00', score: 842, avoidedKg: 3.4 },
-      { label: '21:00', score: 842, avoidedKg: 3.4 }
-    ],
-    week: [
-      { label: 'Mon', score: 824, avoidedKg: 18.2 },
-      { label: 'Tue', score: 828, avoidedKg: 21.4 },
-      { label: 'Wed', score: 831, avoidedKg: 19.8 },
-      { label: 'Thu', score: 835, avoidedKg: 24.1 },
-      { label: 'Fri', score: 838, avoidedKg: 22.0 },
-      { label: 'Sat', score: 840, avoidedKg: 16.5 },
-      { label: 'Sun', score: 842, avoidedKg: 20.8 }
-    ],
-    month: [
-      { label: 'W1', score: 780, avoidedKg: 82.0 },
-      { label: 'W2', score: 802, avoidedKg: 94.5 },
-      { label: 'W3', score: 822, avoidedKg: 110.2 },
-      { label: 'W4', score: 842, avoidedKg: 142.8 }
-    ]
+  // Illustrative score-trend shapes (no real history exists). Each is shifted per profile.
+  var scoreShapes = {
+    day:   [{ label: '06:00', d: -4 }, { label: '09:00', d: -2 }, { label: '12:00', d: -2 }, { label: '15:00', d: -1 }, { label: '18:00', d: 0 }, { label: '21:00', d: 0 }],
+    week:  [{ label: 'Mon', d: -18 }, { label: 'Tue', d: -14 }, { label: 'Wed', d: -11 }, { label: 'Thu', d: -7 }, { label: 'Fri', d: -4 }, { label: 'Sat', d: -2 }, { label: 'Sun', d: 0 }],
+    month: [{ label: 'W1', d: -62 }, { label: 'W2', d: -40 }, { label: 'W3', d: -20 }, { label: 'W4', d: 0 }]
   };
+
+  function seriesFor(profile, tf) {
+    var shape = scoreShapes[tf] || scoreShapes.week;
+    return shape.map(function (pt) {
+      return { label: pt.label, score: Math.max(0, Math.min(1000, profile.carbonScore + pt.d)) };
+    });
+  }
 
   function init() {
     loadSavedProfile();
@@ -50,6 +38,16 @@
     renderTripList();
     renderBadges();
     renderLeaderboard();
+    renderMissionCards();
+  }
+
+  // Chapter 02 preview cards: always the fictional sample profile, labelled as such in the HTML.
+  function renderMissionCards() {
+    var p = window.MISSION_EV_DATA.profiles.aarav;
+    setText('missionScore', String(p.carbonScore));
+    setText('missionStreak', p.streakDays + ' days');
+    setText('missionAvoided', p.totalAvoidedKg + ' kg');
+    setText('missionPoints', p.sampleTokenBalance);
   }
 
   function loadSavedProfile() {
@@ -118,7 +116,7 @@
     var resetBtn = document.getElementById('dashResetDemoBtn');
     if (resetBtn) {
       resetBtn.addEventListener('click', function () {
-        localStorage.removeItem(STORAGE_KEY);
+        try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
         profileData = JSON.parse(JSON.stringify(window.MISSION_EV_DATA.profiles));
         currentProfileId = 'aarav';
         currentTimeframe = 'week';
@@ -138,7 +136,7 @@
         renderProfileView();
         renderScoreChart();
         renderTripList();
-        showNotification('Demo Profile and Trip Data reset to pristine state');
+        showNotification('Demo profile reset');
       });
     }
 
@@ -164,11 +162,11 @@
     setText('dashCarbonScore', p.carbonScore);
     setText('dashScoreTier', p.scoreTier);
     setText('dashStreakDays', p.streakDays + ' Days');
-    setText('dashTotalAvoided', p.totalAvoidedKg + ' kg CO2e');
+    setText('dashTotalAvoided', p.totalAvoidedKg + ' kg CO2e (sample)');
     setText('dashTotalTrips', p.totalTrips + ' Commutes');
     setText('dashWeeklyDistance', p.weeklyDistanceKm + ' km');
-    setText('dashWalletAddress', p.walletAddress);
-    setText('dashTokenBalance', p.tokenBalance);
+    setText('dashWalletAddress', 'None (sample profile, no wallet)');
+    setText('dashTokenBalance', p.sampleTokenBalance);
 
     var avatarEl = document.getElementById('dashAvatar');
     if (avatarEl) avatarEl.textContent = p.avatar;
@@ -181,7 +179,7 @@
     var chartEl = document.getElementById('dashScoreSvg');
     if (!chartEl) return;
 
-    var series = scoreHistory[currentTimeframe] || scoreHistory.week;
+    var series = seriesFor(profileData[currentProfileId], currentTimeframe);
     var W = 620;
     var H = 210;
     var padL = 48;
@@ -189,13 +187,14 @@
     var padT = 24;
     var padB = 34;
 
-    var minScore = 750;
-    var maxScore = 870;
+    var scores = series.map(function (p) { return p.score; });
+    var minScore = Math.floor((Math.min.apply(null, scores) - 10) / 10) * 10;
+    var maxScore = Math.ceil((Math.max.apply(null, scores) + 10) / 10) * 10;
 
     var points = series.map(function (item, i) {
       var x = padL + (i / (series.length - 1)) * (W - padL - padR);
       var y = H - padB - ((item.score - minScore) / (maxScore - minScore)) * (H - padT - padB);
-      return { x: x, y: y, label: item.label, score: item.score, avoided: item.avoidedKg };
+      return { x: x, y: y, label: item.label, score: item.score };
     });
 
     var lineD = 'M ' + points[0].x + ' ' + points[0].y;
@@ -223,7 +222,7 @@
     svg += '</defs>';
 
     // Horizontal guideline grids
-    [780, 810, 840].forEach(function (val) {
+    [minScore, Math.round((minScore + maxScore) / 2), maxScore].forEach(function (val) {
       var gy = H - padB - ((val - minScore) / (maxScore - minScore)) * (H - padT - padB);
       svg += '<line x1="' + padL + '" y1="' + gy + '" x2="' + (W - padR) + '" y2="' + gy + '" stroke="rgba(255,255,255,0.08)" stroke-dasharray="3,3"/>';
       svg += '<text x="' + (padL - 10) + '" y="' + (gy + 4) + '" text-anchor="end" fill="#94A79A" font-size="10" font-family="DM Mono">' + val + '</text>';
@@ -237,7 +236,7 @@
 
     // Interactive Data Nodes
     points.forEach(function (pt) {
-      svg += '<g class="chart-point-node" tabindex="0" data-label="' + pt.label + '" data-score="' + pt.score + '" data-avoided="' + pt.avoided + '">';
+      svg += '<g class="chart-point-node" tabindex="0" data-label="' + pt.label + '" data-score="' + pt.score + '">';
       svg += '<circle cx="' + pt.x + '" cy="' + pt.y + '" r="5.5" fill="#07110D" stroke="#B8FF45" stroke-width="2.5"/>';
       svg += '<circle cx="' + pt.x + '" cy="' + pt.y + '" r="2" fill="#B8FF45"/>';
       svg += '<text x="' + pt.x + '" y="' + (H - padB + 18) + '" text-anchor="middle" fill="#94A79A" font-size="11" font-family="DM Mono">' + pt.label + '</text>';
@@ -253,9 +252,8 @@
       pNode.addEventListener('mouseenter', function (e) {
         var label = pNode.getAttribute('data-label');
         var score = pNode.getAttribute('data-score');
-        var avoided = pNode.getAttribute('data-avoided');
         var rect = pNode.getBoundingClientRect();
-        showScoreTooltip(label + ' • Score: ' + score + ' (Avoided ' + avoided + ' kg)', rect.left + rect.width / 2, rect.top);
+        showScoreTooltip(label + ' • Demo score: ' + score, rect.left + rect.width / 2, rect.top);
       });
       pNode.addEventListener('mouseleave', hideScoreTooltip);
     });
@@ -290,8 +288,9 @@
       html += '<div class="trip-row" data-id="' + trip.id + '" tabindex="0">';
       html += '<div class="trip-col-mode"><span class="mode-tag" style="border-color:' + modeObj.color + '; color:' + modeObj.color + ';">' + modeObj.name.split(' ')[0] + '</span></div>';
       html += '<div class="trip-col-route"><b>' + trip.route + '</b><span class="trip-date">' + trip.date + ' • ' + trip.distanceKm + ' km</span></div>';
-      html += '<div class="trip-col-avoided"><span class="hl">-' + trip.avoidedKg + ' kg</span><small>Avoided CO2</small></div>';
-      html += '<div class="trip-col-tokens"><b>+' + trip.points + ' MEV</b><small>' + trip.status + '</small></div>';
+      var D = window.MISSION_EV_DATA;
+      html += '<div class="trip-col-avoided"><span class="' + (trip.avoidedKg >= 0 ? 'hl' : '') + '">' + D.fmtSignedKg(trip.avoidedKg) + ' kg</span><small>' + (trip.avoidedKg > 0.005 ? 'Avoided vs baseline' : 'None avoided') + '</small></div>';
+      html += '<div class="trip-col-tokens"><b>+' + trip.points + ' pts</b><small>' + trip.status + '</small></div>';
       html += '<div class="trip-col-action"><button type="button" class="btn sm ghost" aria-label="Inspect trip details">INSPECT →</button></div>';
       html += '</div>';
     });
@@ -324,24 +323,24 @@
 
     var modeObj = window.MISSION_EV_DATA.emissionFactors[trip.mode] || window.MISSION_EV_DATA.emissionFactors.ev_car;
 
+    var D = window.MISSION_EV_DATA;
     content.innerHTML = 
       '<div class="drawer-header">' +
-      '<span class="k">PORTAL ON-CHAIN VERIFIED RECORD</span>' +
+      '<span class="k">DEMO SAMPLE RECORD · NOT ON-CHAIN</span>' +
       '<h3>' + trip.route + '</h3>' +
       '<p>' + trip.date + ' • Distance: ' + trip.distanceKm + ' km</p>' +
       '</div>' +
       '<div class="drawer-grid">' +
       '<div class="d-item"><span class="k">TRANSPORT MODE</span><b class="v" style="color:' + modeObj.color + '">' + modeObj.name + '</b></div>' +
-      '<div class="d-item"><span class="k">ESTIMATED EMISSIONS</span><b class="v">' + trip.actualKg + ' kg CO2e</b></div>' +
-      '<div class="d-item"><span class="k">BASELINE ICE EMISSIONS</span><b class="v">' + trip.baselineKg + ' kg CO2e</b></div>' +
-      '<div class="d-item"><span class="k">NET AVOIDED CARBON</span><b class="v hl">-' + trip.avoidedKg + ' kg CO2e</b></div>' +
-      '<div class="d-item"><span class="k">REWARD MINTED</span><b class="v hl">+' + trip.points + ' MEV</b></div>' +
-      '<div class="d-item"><span class="k">VERIFICATION STATUS</span><b class="v">' + trip.status + '</b></div>' +
+      '<div class="d-item"><span class="k">MODELLED EMISSIONS</span><b class="v">' + D.fmtKg(trip.actualKg) + ' kg CO2e</b></div>' +
+      '<div class="d-item"><span class="k">BASELINE EMISSIONS</span><b class="v">' + D.fmtKg(trip.baselineKg) + ' kg CO2e (petrol sedan)</b></div>' +
+      '<div class="d-item"><span class="k">BASELINE − JOURNEY</span><b class="v ' + (trip.avoidedKg >= 0 ? 'hl' : '') + '">' + D.fmtSignedKg(trip.avoidedKg) + ' kg CO2e</b></div>' +
+      '<div class="d-item"><span class="k">DEMO REWARD POINTS</span><b class="v">+' + trip.points + ' pts</b></div>' +
+      '<div class="d-item"><span class="k">STATUS</span><b class="v">' + trip.status + '</b></div>' +
       '</div>' +
       '<div class="drawer-onchain-proof">' +
-      '<span class="k">SMART CONTRACT TRANSACTION PROOF</span>' +
-      '<div class="proof-code"><code>TX HASH: ' + trip.txHash + '<br>EVM CONTRACT: 0x82b9...46A0 (Portal Layer 0 Testnet)<br>ORACLE FEED: Azure Functions Route Telemetry Proof</code></div>' +
-      '<p class="proof-disclaimer">Simulated hackathon demonstration. Proves data validation and token minting logic on Portal Layer 0 EVM.</p>' +
+      '<span class="k">NO TRANSACTION PROOF</span>' +
+      '<p class="proof-disclaimer">This is fictional sample data. It has no transaction hash, contract address or block, and nothing here was submitted to a blockchain. Emissions are computed by the same local model as the Mobility Lab.</p>' +
       '</div>';
 
     drawer.classList.add('open');
@@ -366,7 +365,7 @@
       html += '<div class="badge-icon-wrap">' + getBadgeSvg(b.icon) + '</div>';
       html += '<b class="b-title">' + b.name + '</b>';
       html += '<p class="b-desc">' + b.desc + '</p>';
-      html += '<span class="b-status ' + (b.unlocked ? 'hl' : '') + '">' + (b.unlocked ? 'Unlocked ' + b.date : 'Progress: ' + b.progress) + '</span>';
+      html += '<span class="b-status ' + (b.unlocked ? 'hl' : '') + '">' + (b.unlocked ? 'Unlocked (sample)' : 'Progress: ' + b.progress) + '</span>';
       html += '</div>';
     });
 
@@ -379,13 +378,13 @@
 
     var html = '';
     window.MISSION_EV_DATA.leaderboard.forEach(function (user) {
-      var isYou = user.name.includes('(You)');
+      var isYou = !!user.isSampleProfile;
       html += '<div class="lb-row ' + (isYou ? 'is-user' : '') + '">';
       html += '<div class="lb-rank">#' + user.rank + '</div>';
       html += '<div class="lb-user"><b>' + user.name + '</b><small>' + user.city + ' • ' + user.badge + '</small></div>';
-      html += '<div class="lb-avoided hl">-' + user.avoidedKg + ' kg</div>';
+      html += '<div class="lb-avoided hl">' + user.avoidedKg + ' kg</div>';
       html += '<div class="lb-streak">🔥 ' + user.streak + 'd</div>';
-      html += '<div class="lb-score"><b>' + user.score + ' pts</b></div>';
+      html += '<div class="lb-score"><b>' + user.score + '</b></div>';
       html += '</div>';
     });
 
@@ -430,7 +429,7 @@
     if (!toastContainer) return;
     var t = document.createElement('div');
     t.className = 'toast';
-    t.innerHTML = '⚡ ' + msg;
+    t.textContent = '⚡ ' + msg;
     toastContainer.appendChild(t);
     setTimeout(function () { t.remove(); }, 3200);
   }

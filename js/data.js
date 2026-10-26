@@ -1,295 +1,286 @@
 /**
- * MissionEV Data & Environmental Calculations Engine
- * Built for Build with Bharat 5.0 (Microsoft Azure) & Portaldot Hacker House 2026 (Portal Layer 0 EVM)
- * 
- * Sources & Methodologies:
- * - Central Electricity Authority (CEA) CO2 Baseline Database for the Indian Power Sector (Avg Grid Factor: ~0.71 kg CO2e/kWh)
- * - IPCC Guidelines for National Greenhouse Gas Inventories (Mobile Combustion)
- * - India GHG Programme Mobile Emission Factors
- * - All estimations are clearly distinguished as simulated illustrative figures for hackathon demonstration.
+ * MissionEV — emissions model and DEMO sample data.
+ *
+ * ONE calculation model feeds every number in the UI (lab, charts, tooltips, transaction
+ * preview, weekly mix, route comparison, city simulator, sample trips).
+ *
+ * UNITS (never mixed):
+ *   distance            kilometres (km)
+ *   emission factors    grams CO2e per km (per passenger-km for shared transit)
+ *   electricity         kWh per km (per passenger-km for shared transit)
+ *   grid factors        grams CO2e per kWh
+ *   results             kilograms CO2e  = distanceKm * gramsPerKm / 1000
+ *
+ * AVOIDED EMISSIONS = baseline emissions − selected-journey emissions   (signed)
+ *   positive  -> the selected journey emits LESS than the baseline
+ *   negative  -> the selected journey emits MORE than the baseline
+ *
+ * SOURCES AND STATUS OF EACH FACTOR (nothing here is a certified carbon credit):
+ *   grid factor    CEA "CO2 Baseline Database for the Indian Power Sector" (cea.nic.in). 0.727 tCO2/MWh is the
+ *                  FY2023-24 weighted-average figure as reported by SolarQuarter (6 Jan 2025). Later CEA
+ *                  versions (v22.0, Aug 2026) may have revised it; the primary table was not re-checked.
+ *   solar factor   ~48 g/kWh: lifecycle median for utility-scale solar PV, IPCC AR5 WG3 Annex III (verify before reuse).
+ *   fossil g/km    PROJECT ASSUMPTIONS that mirror the tiers in EVMobilityRewards.sol (196 petrol, 224 diesel).
+ *                  196 g/km equals ~12.2 km/L at 2.392 kg CO2/L (the contract's own per-litre figure).
+ *   kWh/km values  ILLUSTRATIVE vehicle assumptions, not taken from a cited test cycle.
+ *   urban mix 162  ILLUSTRATIVE fleet average, unverified.
+ *   tree equiv.    ~22 kg CO2 per tree per year: a commonly quoted rough figure; real values vary widely.
  */
 
+const MISSION_EV_MODEL = {
+  version: '2026-10-26',
+  gridGramsPerKWh: 727,
+  solarGramsPerKWh: 48,
+  treeKgPerYear: 22,
+  gridSource: 'CEA CO2 Baseline Database, FY2023-24 weighted average 0.727 tCO2/MWh (as reported by SolarQuarter, Jan 2025; primary CEA table not re-verified)',
+  solarSource: 'IPCC AR5 WG3 Annex III, utility-scale solar PV lifecycle median ~48 gCO2e/kWh (verify)',
+  fossilSource: 'Project assumption mirroring EVMobilityRewards.sol tiers (196 / 224 g/km); not independently verified',
+
+  // Demo reward / score rules. ILLUSTRATIVE and independent of the smart contract.
+  demoPointsPerKgAvoided: 20,
+  demoPointsModeBonus: { zero: 15, clean: 10, fossil: 0 },
+  demoScoreRule: '+8 if avoided > 2 kg, +4 if > 0.5 kg, +2 if > 0 kg, −5 if the journey is not below the baseline'
+};
+
 const MISSION_EV_DATA = {
-  // Emission Factors in grams CO2e per passenger-kilometer
+  model: MISSION_EV_MODEL,
+
+  // kind 'electric' -> factor = kWhPerKm * (grid | solar) gCO2e/kWh
+  // kind 'fixed'    -> factor = gPerKm
   emissionFactors: {
     ev_car: {
-      id: 'ev_car',
-      name: 'Electric Car (BEV)',
-      category: 'clean',
-      tailpipe_g_km: 0,
-      lifecycle_grid_g_km: 68,     // India avg grid mix (~15 kWh/100km @ 0.71 kg CO2/kWh + battery amort)
-      lifecycle_green_g_km: 15,    // Solar / Green tariff (<0.10 kg CO2/kWh)
-      efficiency_desc: '15.2 kWh / 100 km',
-      icon: 'zap',
-      color: '#B8FF45',
-      badge: 'Zero Direct Tailpipe'
+      id: 'ev_car', name: 'Electric Car (BEV)', category: 'clean', kind: 'electric',
+      kWhPerKm: 0.152, unitNote: 'per vehicle-km',
+      icon: 'zap', color: '#B8FF45', badge: 'Zero tailpipe, grid-powered'
     },
     ev_2w: {
-      id: 'ev_2w',
-      name: 'Electric 2-Wheeler (EV Scooter)',
-      category: 'clean',
-      tailpipe_g_km: 0,
-      lifecycle_grid_g_km: 24,     // ~3.2 kWh/100km @ 0.71 kg CO2/kWh
-      lifecycle_green_g_km: 6,
-      efficiency_desc: '3.2 kWh / 100 km',
-      icon: 'bike',
-      color: '#20D89A',
-      badge: 'High Urban Efficiency'
+      id: 'ev_2w', name: 'Electric 2-Wheeler (EV Scooter)', category: 'clean', kind: 'electric',
+      kWhPerKm: 0.032, unitNote: 'per vehicle-km',
+      icon: 'bike', color: '#20D89A', badge: 'High urban efficiency'
     },
     metro: {
-      id: 'metro',
-      name: 'Metro Transit (Passenger Rail)',
-      category: 'clean',
-      tailpipe_g_km: 0,
-      lifecycle_grid_g_km: 28,     // High-capacity electric mass rapid transit per passenger
-      lifecycle_green_g_km: 12,
-      efficiency_desc: '0.04 kWh / passenger-km',
-      icon: 'train',
-      color: '#00F0FF',
-      badge: 'Mass Decarbonizer'
+      id: 'metro', name: 'Metro Transit (Passenger Rail)', category: 'clean', kind: 'electric',
+      kWhPerKm: 0.040, unitNote: 'per passenger-km',
+      icon: 'train', color: '#00F0FF', badge: 'Shared electric rail'
     },
     ebus: {
-      id: 'ebus',
-      name: 'Electric Bus (e-Bus)',
-      category: 'clean',
-      tailpipe_g_km: 0,
-      lifecycle_grid_g_km: 35,     // Shared urban electric bus per passenger
-      lifecycle_green_g_km: 14,
-      efficiency_desc: '1.1 kWh/km / 32 passengers',
-      icon: 'bus',
-      color: '#70FF94',
-      badge: 'Shared Clean Fleet'
+      id: 'ebus', name: 'Electric Bus (e-Bus)', category: 'clean', kind: 'electric',
+      kWhPerKm: 1.1 / 32, unitNote: 'per passenger-km (1.1 kWh/km, 32 passengers assumed)',
+      icon: 'bus', color: '#70FF94', badge: 'Shared electric fleet'
     },
     active: {
-      id: 'active',
-      name: 'Walking & Cycling',
-      category: 'zero',
-      tailpipe_g_km: 0,
-      lifecycle_grid_g_km: 0,
-      lifecycle_green_g_km: 0,
-      efficiency_desc: '100% Human Powered',
-      icon: 'footprints',
-      color: '#E0FF85',
-      badge: '100% Zero Emission'
+      id: 'active', name: 'Walking & Cycling', category: 'zero', kind: 'fixed',
+      gPerKm: 0, unitNote: 'human powered',
+      icon: 'footprints', color: '#E0FF85', badge: 'Zero direct emissions'
     },
     petrol_car: {
-      id: 'petrol_car',
-      name: 'Petrol Car (ICE Compact/Sedan)',
-      category: 'fossil',
-      tailpipe_g_km: 165,
-      lifecycle_grid_g_km: 196,    // Well-to-wheel (~14.5 km/L petrol)
-      lifecycle_green_g_km: 196,
-      efficiency_desc: '14.5 km / Litre Petrol',
-      icon: 'car',
-      color: '#FF6B4A',
-      badge: 'High Urban Tailpipe'
+      id: 'petrol_car', name: 'Petrol Car (ICE Compact/Sedan)', category: 'fossil', kind: 'fixed',
+      gPerKm: 196, unitNote: 'per vehicle-km (contract tier PETROL_REGULAR)',
+      icon: 'car', color: '#FF6B4A', badge: 'Fossil fuel'
     },
     diesel_car: {
-      id: 'diesel_car',
-      name: 'Diesel SUV / Taxi',
-      category: 'fossil',
-      tailpipe_g_km: 184,
-      lifecycle_grid_g_km: 224,    // Well-to-wheel (~13.0 km/L diesel)
-      lifecycle_green_g_km: 224,
-      efficiency_desc: '13.0 km / Litre Diesel',
-      icon: 'truck',
-      color: '#FF4136',
-      badge: 'High PM2.5 & NOx'
+      id: 'diesel_car', name: 'Diesel SUV / Taxi', category: 'fossil', kind: 'fixed',
+      gPerKm: 224, unitNote: 'per vehicle-km (contract tier DIESEL_SUV)',
+      icon: 'truck', color: '#FF4136', badge: 'Fossil fuel, higher PM2.5 / NOx'
     }
   },
 
   baselines: {
-    petrol_avg: {
-      id: 'petrol_avg',
-      name: 'Petrol Sedan Baseline (196 g CO2e/km)',
-      factor_g_km: 196,
-      notes: 'Typical privately owned Indian commuter car'
-    },
-    diesel_suv: {
-      id: 'diesel_suv',
-      name: 'Diesel SUV / Cab Baseline (224 g CO2e/km)',
-      factor_g_km: 224,
-      notes: 'Popular app-cab ride-hailing and fleet ICE vehicles'
-    },
-    urban_mix: {
-      id: 'urban_mix',
-      name: 'Indian Urban Commute Avg (162 g CO2e/km)',
-      factor_g_km: 162,
-      notes: 'Weighted fleet average across 2W, 3W auto and 4W ICE'
-    }
+    petrol_avg: { id: 'petrol_avg', name: 'Standard Petrol Sedan', factor_g_km: 196, notes: 'Project assumption (matches contract baseline)' },
+    diesel_suv: { id: 'diesel_suv', name: 'Diesel SUV / App-Cab', factor_g_km: 224, notes: 'Project assumption (matches contract DIESEL_SUV tier)' },
+    urban_mix:  { id: 'urban_mix',  name: 'Indian Urban Commute Average', factor_g_km: 162, notes: 'ILLUSTRATIVE fleet average, unverified' }
   },
 
-  // City Scenarios for Chapter 07 City Simulator
+  /** g CO2e per km for a mode, using the single set of constants above. */
+  factorGramsPerKm: function (modeKey, useGreenTariff) {
+    var m = this.emissionFactors[modeKey] || this.emissionFactors.ev_car;
+    if (m.kind === 'electric') {
+      var gridG = useGreenTariff ? MISSION_EV_MODEL.solarGramsPerKWh : MISSION_EV_MODEL.gridGramsPerKWh;
+      return m.kWhPerKm * gridG;
+    }
+    return m.gPerKm;
+  },
+
+  /** Human-readable efficiency, generated from the constants so it can never disagree with them. */
+  efficiencyText: function (modeKey) {
+    var m = this.emissionFactors[modeKey];
+    if (!m) return '';
+    if (m.kind === 'electric') {
+      var perPassenger = m.unitNote.indexOf('passenger') !== -1;
+      return perPassenger ? m.kWhPerKm.toFixed(3) + ' kWh / passenger-km' : (m.kWhPerKm * 100).toFixed(1) + ' kWh / 100 km';
+    }
+    return m.gPerKm === 0 ? 'No fuel or electricity' : m.gPerKm + ' g CO2e / km';
+  },
+
+  // ---------- Core calculation ----------
+  calculate: function (distanceKm, modeKey, baselineKey, useGreenTariff) {
+    var mode = this.emissionFactors[modeKey] || this.emissionFactors.ev_car;
+    var baseline = this.baselines[baselineKey] || this.baselines.petrol_avg;
+    var dist = Math.max(0, parseFloat(distanceKm) || 0);
+    var green = !!useGreenTariff;
+
+    var factor = this.factorGramsPerKm(mode.id, green);
+    var journeyKg = (dist * factor) / 1000;
+    var baselineKg = (dist * baseline.factor_g_km) / 1000;
+    var avoidedKg = baselineKg - journeyKg;                  // SIGNED difference
+
+    var points = 0;
+    if (avoidedKg > 0) {
+      var bonus = MISSION_EV_MODEL.demoPointsModeBonus[mode.category] || 0;
+      points = Math.round(avoidedKg * MISSION_EV_MODEL.demoPointsPerKgAvoided + bonus);
+    }
+
+    var scoreDelta;
+    if (avoidedKg > 2.0) scoreDelta = 8;
+    else if (avoidedKg > 0.5) scoreDelta = 4;
+    else if (avoidedKg > 0) scoreDelta = 2;
+    else scoreDelta = -5;
+
+    return {
+      distanceKm: dist,
+      mode: mode,
+      baseline: baseline,
+      useGreenTariff: green,
+      factor_g_km: factor,
+      baseline_g_km: baseline.factor_g_km,
+      journeyEmissionsKg: journeyKg,
+      baselineEmissionsKg: baselineKg,
+      avoidedKg: avoidedKg,
+      isAboveBaseline: avoidedKg < 0,
+      rewardPoints: points,
+      scoreDelta: scoreDelta,
+      treeDaysEquivalent: avoidedKg / (MISSION_EV_MODEL.treeKgPerYear / 365),
+      percentReduction: baselineKg > 0 ? (avoidedKg / baselineKg) * 100 : 0
+    };
+  },
+
+  /**
+   * What the DEPLOYED CONTRACT would record for the same journey. Uses the contract's own
+   * constants, so it intentionally differs from calculate() (e.g. EV = fixed 68 g/km).
+   * Returns { supported:false } for journey types the contract cannot record.
+   */
+  onChainPreview: function (modeKey, distanceKm) {
+    var rules = window.ONCHAIN_RULES;
+    var support = window.ONCHAIN_SUPPORTED_MODES[modeKey];
+    var km = Math.round(parseFloat(distanceKm) || 0);
+    var out = { supported: !!support, modeKey: modeKey, distanceKm: km, method: support ? support.method : null };
+    if (!support) return out;
+    out.validDistance = km >= rules.minDistanceKm && km <= rules.maxDistanceKm;
+    if (support.method === 'recordEVJourney') {
+      out.avoidedGrams = (rules.baselineIceGramsPerKm - rules.evGridGramsPerKm) * km;
+      out.tokenRewardIfFunded = rules.rewardTokensPerKm * km;
+      out.scoreDelta = rules.scoreDeltaEv;
+    } else {
+      var tierName = support.vehicleType === window.VEHICLE_TYPE.DIESEL_SUV ? 'DIESEL_SUV' : 'PETROL_REGULAR';
+      out.emittedGrams = rules.iceGramsPerKm[tierName] * km;
+      out.tokenRewardIfFunded = 0;
+      out.scoreDelta = rules.scoreDeltaIce;
+    }
+    return out;
+  },
+
+  /** Formatting helpers so every widget prints numbers the same way. */
+  fmtKg: function (kg, decimals) {
+    return (Math.abs(kg) < 0.005 ? 0 : kg).toFixed(decimals == null ? 2 : decimals);
+  },
+  fmtSignedKg: function (kg, decimals) {
+    var v = Math.abs(kg) < 0.005 ? 0 : kg;
+    return (v > 0 ? '+' : v < 0 ? '−' : '') + Math.abs(v).toFixed(decimals == null ? 2 : decimals);
+  },
+
+  // ---------- City scenarios (ILLUSTRATIVE INPUTS — not measurements or forecasts) ----------
   cities: {
     delhi: {
-      id: 'delhi',
-      name: 'Delhi NCR',
-      dailyTrips: 24500000,
-      avgTripKm: 11.2,
-      currentCleanShare: 0.22,
-      gridIntensity_kg_kWh: 0.72,
-      population: '33 Million',
-      airQualityContext: 'Severely affected by vehicular NOx and winter PM2.5 smog'
+      id: 'delhi', name: 'Delhi NCR', dailyTrips: 24500000, avgTripKm: 11.2,
+      context: 'Scenario inputs are illustrative placeholders, not census or transport-authority data.'
     },
     bengaluru: {
-      id: 'bengaluru',
-      name: 'Bengaluru Tech Corridor',
-      dailyTrips: 13800000,
-      avgTripKm: 9.6,
-      currentCleanShare: 0.18,
-      gridIntensity_kg_kWh: 0.65,
-      population: '14 Million',
-      airQualityContext: 'Peak hour congestion bottlenecks with high 2W density'
+      id: 'bengaluru', name: 'Bengaluru Tech Corridor', dailyTrips: 13800000, avgTripKm: 9.6,
+      context: 'Scenario inputs are illustrative placeholders, not census or transport-authority data.'
     },
     mumbai: {
-      id: 'mumbai',
-      name: 'Mumbai MMR',
-      dailyTrips: 18200000,
-      avgTripKm: 14.5,
-      currentCleanShare: 0.35,
-      gridIntensity_kg_kWh: 0.69,
-      population: '21 Million',
-      airQualityContext: 'Heavy local suburban railway backbone plus evolving metro network'
+      id: 'mumbai', name: 'Mumbai MMR', dailyTrips: 18200000, avgTripKm: 14.5,
+      context: 'Scenario inputs are illustrative placeholders, not census or transport-authority data.'
     }
   },
 
-  // Sample User Profiles for Chapter 04
+  // Mix the "shifted" trips are assumed to move to (shares sum to 1). Documented on the page.
+  cityCleanMix: { metro: 0.40, ebus: 0.20, ev_2w: 0.30, ev_car: 0.10 },
+  cityBaselineKey: 'urban_mix',
+  // Tailpipe PM2.5 per ICE km. ILLUSTRATIVE assumption, unverified.
+  cityPm25GramsPerKm: 0.02,
+
+  // ---------- DEMO sample profiles ----------
+  // All people, wallets and histories below are FICTIONAL sample data. Per-trip emissions are
+  // computed from the model above; the aggregates are fixed sample numbers.
   profiles: {
     aarav: {
-      id: 'aarav',
-      name: 'Aarav Sharma',
-      tagline: 'EV Pioneer & Metro Commuter',
-      avatar: 'AS',
-      city: 'Delhi NCR',
-      carbonScore: 842,
-      scoreTier: 'Econaut Master (Top 3%)',
-      streakDays: 18,
-      totalAvoidedKg: 142.8,
-      totalTrips: 84,
-      weeklyDistanceKm: 168.4,
-      favoriteMode: 'ev_car',
-      walletAddress: '0x7B2F...39e1',
-      tokenBalance: '1,428 MEV',
+      id: 'aarav', name: 'Aarav Sharma', tagline: 'EV Pioneer & Metro Commuter', avatar: 'AS', city: 'Delhi NCR',
+      carbonScore: 842, scoreTier: 'Sample tier: Master', streakDays: 18, totalAvoidedKg: 142.8, totalTrips: 84,
+      weeklyDistanceKm: 168.4, favoriteMode: 'ev_car', sampleTokenBalance: '1,428 demo points',
       trips: [
-        { id: 'tx-8941', date: 'Today, 09:15 AM', route: 'CyberHub → Connaught Place', distanceKm: 26.4, mode: 'ev_car', actualKg: 1.80, baselineKg: 5.17, avoidedKg: 3.37, points: 68, txHash: '0x8a9c41...bf02', status: 'Verified on Portal EVM' },
-        { id: 'tx-8938', date: 'Yesterday, 06:40 PM', route: 'Barakhamba Road → Noida Sec 62', distanceKm: 18.2, mode: 'metro', actualKg: 0.51, baselineKg: 3.57, avoidedKg: 3.06, points: 62, txHash: '0x3f1e92...cc74', status: 'Verified on Portal EVM' },
-        { id: 'tx-8924', date: '24 Oct, 08:30 AM', route: 'Saket Metro → Hauz Khas Park', distanceKm: 4.8, mode: 'active', actualKg: 0.00, baselineKg: 0.94, avoidedKg: 0.94, points: 28, txHash: '0x1b45aa...8810', status: 'Verified on Portal EVM' },
-        { id: 'tx-8919', date: '23 Oct, 07:15 PM', route: 'Aerocity → Dwarka Sector 21', distanceKm: 12.6, mode: 'ev_car', actualKg: 0.86, baselineKg: 2.47, avoidedKg: 1.61, points: 40, txHash: '0x99e210...de51', status: 'Verified on Portal EVM' },
-        { id: 'tx-8902', date: '22 Oct, 09:00 AM', route: 'Nehru Place → Pragati Maidan', distanceKm: 9.8, mode: 'ebus', actualKg: 0.34, baselineKg: 1.92, avoidedKg: 1.58, points: 38, txHash: '0x62dbca...1109', status: 'Verified on Portal EVM' },
-        { id: 'tx-8889', date: '21 Oct, 06:30 PM', route: 'Gurgaon Sec 56 → DLF Phase 1', distanceKm: 6.2, mode: 'ev_2w', actualKg: 0.15, baselineKg: 1.22, avoidedKg: 1.07, points: 30, txHash: '0x44fa78...a332', status: 'Verified on Portal EVM' },
-        { id: 'tx-8874', date: '20 Oct, 08:15 AM', route: 'Noida Sec 18 → Okhla Phase 3', distanceKm: 11.5, mode: 'metro', actualKg: 0.32, baselineKg: 2.25, avoidedKg: 1.93, points: 44, txHash: '0x22ec14...5510', status: 'Verified on Portal EVM' }
+        { id: 'sample-1', date: 'Sample day 7', route: 'CyberHub → Connaught Place', distanceKm: 26.4, mode: 'ev_car' },
+        { id: 'sample-2', date: 'Sample day 6', route: 'Barakhamba Road → Noida Sec 62', distanceKm: 18.2, mode: 'metro' },
+        { id: 'sample-3', date: 'Sample day 5', route: 'Saket Metro → Hauz Khas Park', distanceKm: 4.8, mode: 'active' },
+        { id: 'sample-4', date: 'Sample day 4', route: 'Aerocity → Dwarka Sector 21', distanceKm: 12.6, mode: 'ev_car' },
+        { id: 'sample-5', date: 'Sample day 3', route: 'Nehru Place → Pragati Maidan', distanceKm: 9.8, mode: 'ebus' },
+        { id: 'sample-6', date: 'Sample day 2', route: 'Gurgaon Sec 56 → DLF Phase 1', distanceKm: 6.2, mode: 'ev_2w' },
+        { id: 'sample-7', date: 'Sample day 1', route: 'Noida Sec 18 → Okhla Phase 3', distanceKm: 11.5, mode: 'metro' }
       ]
     },
     priya: {
-      id: 'priya',
-      name: 'Priya Patel',
-      tagline: 'Multimodal Urbanist & Cyclist',
-      avatar: 'PP',
-      city: 'Bengaluru',
-      carbonScore: 785,
-      scoreTier: 'Green Champion',
-      streakDays: 9,
-      totalAvoidedKg: 98.4,
-      totalTrips: 62,
-      weeklyDistanceKm: 122.0,
-      favoriteMode: 'active',
-      walletAddress: '0x4E91...61cB',
-      tokenBalance: '984 MEV',
+      id: 'priya', name: 'Priya Patel', tagline: 'Multimodal Urbanist & Cyclist', avatar: 'PP', city: 'Bengaluru',
+      carbonScore: 785, scoreTier: 'Sample tier: Champion', streakDays: 9, totalAvoidedKg: 98.4, totalTrips: 62,
+      weeklyDistanceKm: 122.0, favoriteMode: 'active', sampleTokenBalance: '984 demo points',
       trips: [
-        { id: 'tx-7712', date: 'Today, 08:45 AM', route: 'Indiranagar → Embassy GolfLinks', distanceKm: 6.8, mode: 'active', actualKg: 0.00, baselineKg: 1.33, avoidedKg: 1.33, points: 35, txHash: '0x712a88...ff41', status: 'Verified on Portal EVM' },
-        { id: 'tx-7705', date: 'Yesterday, 07:10 PM', route: 'Domlur → Koramangala 4th Block', distanceKm: 4.5, mode: 'ev_2w', actualKg: 0.11, baselineKg: 0.88, avoidedKg: 0.77, points: 24, txHash: '0x94bb23...819a', status: 'Verified on Portal EVM' },
-        { id: 'tx-7689', date: '24 Oct, 09:10 AM', route: 'MG Road → Baiyappanahalli Metro', distanceKm: 8.2, mode: 'metro', actualKg: 0.23, baselineKg: 1.61, avoidedKg: 1.38, points: 34, txHash: '0x55bc10...32f1', status: 'Verified on Portal EVM' },
-        { id: 'tx-7672', date: '23 Oct, 06:50 PM', route: 'Whitefield ITPL → Mahadevapura', distanceKm: 7.4, mode: 'ebus', actualKg: 0.26, baselineKg: 1.45, avoidedKg: 1.19, points: 31, txHash: '0x12dc55...44e7', status: 'Verified on Portal EVM' }
+        { id: 'sample-11', date: 'Sample day 4', route: 'Indiranagar → Embassy GolfLinks', distanceKm: 6.8, mode: 'active' },
+        { id: 'sample-12', date: 'Sample day 3', route: 'Domlur → Koramangala 4th Block', distanceKm: 4.5, mode: 'ev_2w' },
+        { id: 'sample-13', date: 'Sample day 2', route: 'MG Road → Baiyappanahalli Metro', distanceKm: 8.2, mode: 'metro' },
+        { id: 'sample-14', date: 'Sample day 1', route: 'Whitefield ITPL → Mahadevapura', distanceKm: 7.4, mode: 'ebus' }
       ]
     },
     rohan: {
-      id: 'rohan',
-      name: 'Rohan Verma',
-      tagline: 'Hybrid Transitioner',
-      avatar: 'RV',
-      city: 'Mumbai',
-      carbonScore: 590,
-      scoreTier: 'Decarbonizing Novice',
-      streakDays: 4,
-      totalAvoidedKg: 38.6,
-      totalTrips: 31,
-      weeklyDistanceKm: 94.5,
-      favoriteMode: 'ev_car',
-      walletAddress: '0x11A0...98d4',
-      tokenBalance: '386 MEV',
+      id: 'rohan', name: 'Rohan Verma', tagline: 'Hybrid Transitioner', avatar: 'RV', city: 'Mumbai',
+      carbonScore: 590, scoreTier: 'Sample tier: Novice', streakDays: 4, totalAvoidedKg: 38.6, totalTrips: 31,
+      weeklyDistanceKm: 94.5, favoriteMode: 'ev_car', sampleTokenBalance: '386 demo points',
       trips: [
-        { id: 'tx-5510', date: 'Today, 10:00 AM', route: 'BKC → Lower Parel', distanceKm: 14.2, mode: 'ev_car', actualKg: 0.97, baselineKg: 2.78, avoidedKg: 1.81, points: 42, txHash: '0x66fe44...aa23', status: 'Verified on Portal EVM' },
-        { id: 'tx-5498', date: 'Yesterday, 08:30 PM', route: 'Andheri West → Bandra West', distanceKm: 11.0, mode: 'petrol_car', actualKg: 2.16, baselineKg: 2.16, avoidedKg: 0.00, points: 0, txHash: '0x9901aa...10b4', status: 'High Emissions Logged' }
+        { id: 'sample-21', date: 'Sample day 2', route: 'BKC → Lower Parel', distanceKm: 14.2, mode: 'ev_car' },
+        { id: 'sample-22', date: 'Sample day 1', route: 'Andheri West → Bandra West', distanceKm: 11.0, mode: 'petrol_car' }
       ]
     }
   },
 
-  // Achievements Database
   badges: [
-    { id: 'badge-1', name: 'Zero Tailpipe Starter', icon: 'zap', desc: 'Completed first 5 trips with 100% electric propulsion', unlocked: true, date: '12 Oct 2026' },
-    { id: 'badge-2', name: 'Centurion Decarbonizer', icon: 'shield', desc: 'Avoided over 100 kg CO2e versus standard ICE baselines', unlocked: true, date: '19 Oct 2026' },
-    { id: 'badge-3', name: 'Transit Maestro', icon: 'train', desc: 'Used Metro or Electric Bus for 10 consecutive weekdays', unlocked: true, date: '22 Oct 2026' },
-    { id: 'badge-4', name: 'Solar Grid Sync', icon: 'sun', desc: 'Charged EV during midday peak solar generation hours', unlocked: false, progress: '3 / 5 Trips' },
-    { id: 'badge-5', name: '30-Day Clean Streak', icon: 'flame', desc: 'Maintained 30 uninterrupted days of clean commuting', unlocked: false, progress: '18 / 30 Days' },
-    { id: 'badge-6', name: 'Portal On-Chain Legend', icon: 'award', desc: 'Accumulated over 1,000 verified on-chain MEV reward tokens', unlocked: true, date: '25 Oct 2026' }
+    { id: 'badge-1', name: 'Zero Tailpipe Starter', icon: 'zap', desc: 'Sample badge: first 5 trips with electric propulsion', unlocked: true, date: 'sample' },
+    { id: 'badge-2', name: 'Centurion Decarbonizer', icon: 'shield', desc: 'Sample badge: over 100 kg CO2e avoided vs the baseline', unlocked: true, date: 'sample' },
+    { id: 'badge-3', name: 'Transit Maestro', icon: 'train', desc: 'Sample badge: Metro or e-bus for 10 consecutive weekdays', unlocked: true, date: 'sample' },
+    { id: 'badge-4', name: 'Solar Grid Sync', icon: 'sun', desc: 'Sample badge: charge during midday solar hours', unlocked: false, progress: '3 / 5 trips (sample)' },
+    { id: 'badge-5', name: '30-Day Clean Streak', icon: 'flame', desc: 'Sample badge: 30 uninterrupted days of clean commuting', unlocked: false, progress: '18 / 30 days (sample)' },
+    { id: 'badge-6', name: '1,000 Demo Points', icon: 'award', desc: 'Sample badge: 1,000 demo reward points. Not on-chain tokens.', unlocked: true, date: 'sample' }
   ],
 
-  // Leaderboard data
+  // Entirely fictional sample leaderboard.
   leaderboard: [
-    { rank: 1, name: 'Ananya S.', avatar: 'AS', city: 'Bengaluru', avoidedKg: 312.4, score: 968, streak: 42, badge: 'Eco Titan' },
-    { rank: 2, name: 'Vikram Joshi', avatar: 'VJ', city: 'Delhi NCR', avoidedKg: 284.1, score: 942, streak: 35, badge: 'Metro Guru' },
-    { rank: 3, name: 'Simran Kaur', avatar: 'SK', city: 'Mumbai', avoidedKg: 246.8, score: 915, streak: 28, badge: 'EV Champion' },
-    { rank: 4, name: 'Aarav Sharma (You)', avatar: 'AS', city: 'Delhi NCR', avoidedKg: 142.8, score: 842, streak: 18, badge: 'Econaut' },
-    { rank: 5, name: 'Devendra P.', avatar: 'DP', city: 'Pune', avoidedKg: 139.2, score: 830, streak: 14, badge: 'Transit Pro' },
-    { rank: 6, name: 'Priya Patel', avatar: 'PP', city: 'Bengaluru', avoidedKg: 98.4, score: 785, streak: 9, badge: 'Active Urbanist' }
-  ],
-
-  // Core Calculation Function
-  calculate: function(distanceKm, modeKey, baselineKey = 'petrol_avg', useGreenTariff = false) {
-    const mode = this.emissionFactors[modeKey] || this.emissionFactors.ev_car;
-    const baseline = this.baselines[baselineKey] || this.baselines.petrol_avg;
-    
-    // Choose lifecycle factor based on grid clean energy setting
-    const factor_g_km = useGreenTariff ? mode.lifecycle_green_g_km : mode.lifecycle_grid_g_km;
-    
-    // Emissions in kilograms
-    const journeyEmissionsKg = (distanceKm * factor_g_km) / 1000;
-    const baselineEmissionsKg = (distanceKm * baseline.factor_g_km) / 1000;
-    const avoidedKg = Math.max(0, baselineEmissionsKg - journeyEmissionsKg);
-    const tailpipeKg = (distanceKm * mode.tailpipe_g_km) / 1000;
-    
-    // MissionEV Reward Points rule (illustrative demo logic)
-    // 1 kg avoided CO2 = 20 points base + mode bonus
-    let modeBonus = 5;
-    if (mode.category === 'zero') modeBonus = 15;
-    if (mode.category === 'clean') modeBonus = 10;
-    if (mode.category === 'fossil') modeBonus = 0;
-    
-    const rewardPoints = Math.round(avoidedKg * 20 + (avoidedKg > 0 ? modeBonus : 0));
-    
-    // Carbon Score Impact (+/- points)
-    let scoreDelta = 0;
-    if (avoidedKg > 2.0) scoreDelta = +8;
-    else if (avoidedKg > 0.5) scoreDelta = +4;
-    else if (avoidedKg > 0) scoreDelta = +2;
-    else scoreDelta = -5; // ICE penalty for higher emission than baseline
-
-    return {
-      distanceKm: parseFloat(distanceKm),
-      mode,
-      baseline,
-      useGreenTariff,
-      factor_g_km,
-      journeyEmissionsKg: parseFloat(journeyEmissionsKg.toFixed(2)),
-      baselineEmissionsKg: parseFloat(baselineEmissionsKg.toFixed(2)),
-      avoidedKg: parseFloat(avoidedKg.toFixed(2)),
-      tailpipeKg: parseFloat(tailpipeKg.toFixed(2)),
-      rewardPoints: Math.max(0, rewardPoints),
-      scoreDelta,
-      treesEquivalent: (avoidedKg / 0.06).toFixed(1), // Average tree absorbs ~60g CO2/day
-      percentReduction: baselineEmissionsKg > 0 ? Math.round((avoidedKg / baselineEmissionsKg) * 100) : 0
-    };
-  }
+    { rank: 1, name: 'Ananya S.', avatar: 'AS', city: 'Bengaluru', avoidedKg: 312.4, score: 968, streak: 42, badge: 'Sample' },
+    { rank: 2, name: 'Vikram Joshi', avatar: 'VJ', city: 'Delhi NCR', avoidedKg: 284.1, score: 942, streak: 35, badge: 'Sample' },
+    { rank: 3, name: 'Simran Kaur', avatar: 'SK', city: 'Mumbai', avoidedKg: 246.8, score: 915, streak: 28, badge: 'Sample' },
+    { rank: 4, name: 'Aarav Sharma (sample profile)', avatar: 'AS', city: 'Delhi NCR', avoidedKg: 142.8, score: 842, streak: 18, badge: 'Sample', isSampleProfile: true },
+    { rank: 5, name: 'Devendra P.', avatar: 'DP', city: 'Pune', avoidedKg: 139.2, score: 830, streak: 14, badge: 'Sample' },
+    { rank: 6, name: 'Priya Patel', avatar: 'PP', city: 'Bengaluru', avoidedKg: 98.4, score: 785, streak: 9, badge: 'Sample' }
+  ]
 };
 
+// Derive every sample trip's numbers from the model so they can never drift from it.
+Object.keys(MISSION_EV_DATA.profiles).forEach(function (pid) {
+  MISSION_EV_DATA.profiles[pid].trips.forEach(function (t) {
+    var r = MISSION_EV_DATA.calculate(t.distanceKm, t.mode, 'petrol_avg', false);
+    t.actualKg = r.journeyEmissionsKg;
+    t.baselineKg = r.baselineEmissionsKg;
+    t.avoidedKg = r.avoidedKg;
+    t.points = r.rewardPoints;
+    t.status = 'Sample trip (not on-chain)';
+  });
+});
+
+window.MISSION_EV_MODEL = MISSION_EV_MODEL;
 window.MISSION_EV_DATA = MISSION_EV_DATA;
